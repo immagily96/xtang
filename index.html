@@ -1,32 +1,32 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VOICE ARCHIVE</title>
+    <title>xtang · 你的日语私教</title>
     <style>
-        :root { --bg-start: #f0f7f4; --bg-end: #fff5e6; --text: #374151; --accent: #8fb39e; }
+        :root { --bg-start: #fdfcf0; --bg-end: #eef2f3; --text: #4a4a4a; --accent: #ffb7b2; }
         body { background: linear-gradient(135deg, var(--bg-start), var(--bg-end)); color: var(--text); 
-               font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; 
+               font-family: 'Hiragino Sans', 'PingFang SC', sans-serif; 
                margin: 0; display: flex; align-items: center; justify-content: center; 
                min-height: 100vh; overflow: hidden; }
         .container { width: 100%; max-width: 100%; text-align: center; padding: 20px; }
-        #visualizer { width: 180px; height: 180px; margin: 0 auto 60px; border-radius: 50%; 
-                      background: var(--accent); opacity: 0.3; cursor: pointer; position: relative; }
-        #visualizer.active { animation: wave 2s infinite ease-out; }
-        @keyframes wave { 0% { box-shadow: 0 0 0 0 rgba(143, 179, 158, 0.7); } 100% { box-shadow: 0 0 0 50px rgba(143, 179, 158, 0); } }
-        #status { font-size: 1.6rem; line-height: 1.6; margin-bottom: 40px; font-weight: 500; }
-        .correction-box { margin-top: 30px; padding: 25px; background: rgba(255,255,255,0.4); 
-                          border-radius: 15px; font-size: 1.2rem; font-style: italic; text-align: left; }
-        #settings { display: none; margin-top: 40px; padding-top: 20px; text-align: left; }
+        #visualizer { width: 150px; height: 150px; margin: 0 auto 40px; border-radius: 50%; 
+                      background: var(--accent); opacity: 0.8; cursor: pointer; transition: 0.3s; }
+        #visualizer.active { animation: breath 1.5s infinite ease-in-out; }
+        @keyframes breath { 0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255,183,178,0.5); } 50% { transform: scale(1.1); box-shadow: 0 0 40px rgba(255,183,178,0.8); } }
+        #status { font-size: 1.4rem; line-height: 1.6; margin-bottom: 30px; font-weight: 400; padding: 0 20px; }
+        .chat-bubble { margin: 20px auto; padding: 20px; background: rgba(255,255,255,0.7); 
+                       border-radius: 20px; font-size: 1.2rem; text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        #settings { display: none; margin-top: 30px; text-align: left; }
         #settings.open { display: block; }
-        input { background: rgba(255,255,255,0.6); border: 1px solid #ccc; padding: 15px; width: 100%; margin-bottom: 20px; border-radius: 8px; font-size: 1.1rem; }
+        input { background: rgba(255,255,255,0.8); border: none; padding: 12px; width: 100%; margin-bottom: 10px; border-radius: 10px; }
     </style>
 </head>
 <body>
 <div class="container">
     <div id="visualizer"></div>
-    <div id="status">点击圆球开始练习</div>
+    <div id="status">点击圆球，开始对话吧</div>
     <div id="settings">
         <input type="password" id="dsKey" placeholder="DeepSeek API Key">
         <input type="password" id="elKey" placeholder="ElevenLabs API Key">
@@ -34,34 +34,34 @@
 </div>
 <script>
     const statusDiv = document.getElementById('status'), visualizer = document.getElementById('visualizer');
-    // 强化指令：不仅禁止复述，还要求强制进行日语引导教学
-    const systemPrompt = `你现在是日语外教 xtang。严禁复述、模仿或确认用户刚才说的话。
-    规则：1. 发现错误时，指出并纠正（中文，<15字）。2. 语法正确时，分享简短知识点（中文，<15字）。3. 必须进行日语追问引导。4. JSON：{"japanese": "日语回复", "correction": "中文提示" }。`;
+    // 【注入灵魂的 System Prompt】
+    const systemPrompt = `你现在是我的日语好朋友兼私教 xtang。请像真人一样聊天，拒绝复读机模式。
+    规则：
+    1. 严禁复述用户输入。
+    2. 必须先对我的话做出自然的人类反应（共鸣、感叹或反问），然后再进行教学。
+    3. 如果语法没问题，就聊聊这个话题，多用地道的日语口语表达（比如：へぇ〜、なるほどね、そうなんだ！）。
+    4. 纠错时，用中文轻柔地引导，不要说教。
+    5. JSON格式：{"japanese": "自然的日语回应，包含追问", "correction": "中文友善建议" }。`;
+    
     let history = [{role: 'system', content: systemPrompt}];
     
     visualizer.onclick = () => { 
         if(!localStorage.getItem('ds')) { document.getElementById('settings').classList.toggle('open'); return; }
         const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        rec.lang = 'ja-JP'; rec.start(); visualizer.classList.add('active'); statusDiv.innerText = "Listening..."; 
+        rec.lang = 'ja-JP'; rec.start(); visualizer.classList.add('active'); statusDiv.innerText = "正在听你说话..."; 
         
         rec.onresult = async (e) => {
-            statusDiv.innerText = "Thinking...";
+            statusDiv.innerText = "xtang 在想怎么回答...";
             const userText = e.results[0][0].transcript;
-            
-            // 将用户输入加入历史，确保上下文连贯
             history.push({role: 'user', content: userText});
-            
             const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
                 method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('ds')},
                 body: JSON.stringify({model: 'deepseek-chat', messages: history})
             });
             const data = await resp.json();
             const content = JSON.parse(data.choices[0].message.content.match(/\{[\s\S]*\}/)[0]);
-            
-            // 将 AI 回复加入历史
             history.push({role: 'assistant', content: JSON.stringify(content)});
-            
-            statusDiv.innerHTML = `${content.japanese}<div class="correction-box">💡 提示：<br>${content.correction}</div>`;
+            statusDiv.innerHTML = `${content.japanese}<div class="chat-bubble">💡 ${content.correction}</div>`;
             playAudio(content.japanese);
         };
     };
