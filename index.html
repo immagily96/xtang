@@ -1,84 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>xtang · 你的日语私教</title>
+    <title>Haru · 聊天</title>
     <style>
-        :root { --bg-start: #fdfcf0; --bg-end: #eef2f3; --text: #4a4a4a; --accent: #ffb7b2; }
-        body { background: linear-gradient(135deg, var(--bg-start), var(--bg-end)); color: var(--text); 
-               font-family: 'Hiragino Sans', 'PingFang SC', sans-serif; 
-               margin: 0; display: flex; align-items: center; justify-content: center; 
-               min-height: 100vh; overflow: hidden; }
-        .container { width: 100%; max-width: 100%; text-align: center; padding: 20px; }
-        #visualizer { width: 150px; height: 150px; margin: 0 auto 40px; border-radius: 50%; 
-                      background: var(--accent); opacity: 0.8; cursor: pointer; transition: 0.3s; }
-        #visualizer.active { animation: breath 1.5s infinite ease-in-out; }
-        @keyframes breath { 0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255,183,178,0.5); } 50% { transform: scale(1.1); box-shadow: 0 0 40px rgba(255,183,178,0.8); } }
-        #status { font-size: 1.4rem; line-height: 1.6; margin-bottom: 30px; font-weight: 400; padding: 0 20px; }
-        .chat-bubble { margin: 20px auto; padding: 20px; background: rgba(255,255,255,0.7); 
-                       border-radius: 20px; font-size: 1.2rem; text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        #settings { display: none; margin-top: 30px; text-align: left; }
-        #settings.open { display: block; }
-        input { background: rgba(255,255,255,0.8); border: none; padding: 12px; width: 100%; margin-bottom: 10px; border-radius: 10px; }
+        body { margin: 0; background-color: #f0f2f5; font-family: -apple-system, sans-serif; height: 100vh; display: flex; flex-direction: column; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .bubble { max-width: 80%; padding: 12px 16px; border-radius: 18px; font-size: 1rem; line-height: 1.4; position: relative; }
+        .ai { background: white; align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .user { background: #95ec69; align-self: flex-end; border-bottom-right-radius: 4px; color: #000; }
+        .tip { font-size: 0.75rem; color: #888; margin-top: 4px; display: block; font-style: italic; }
+        #input-area { background: #f6f6f6; padding: 10px; display: flex; gap: 10px; border-top: 1px solid #ddd; }
+        input { flex: 1; border: none; padding: 10px; border-radius: 20px; outline: none; }
+        button { background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
-<div class="container">
-    <div id="visualizer"></div>
-    <div id="status">点击圆球，开始对话吧</div>
-    <div id="settings">
-        <input type="password" id="dsKey" placeholder="DeepSeek API Key">
-        <input type="password" id="elKey" placeholder="ElevenLabs API Key">
-    </div>
+
+<div id="chat">
+    <div class="bubble ai">おはよう！今日は何してたの？😊 (早安！今天做了什么呀？)</div>
 </div>
+
+<div id="input-area">
+    <input type="text" id="msg" placeholder="输入日语...">
+    <button onclick="send()">发送</button>
+</div>
+
 <script>
-    const statusDiv = document.getElementById('status'), visualizer = document.getElementById('visualizer');
-    // 【注入灵魂的 System Prompt】
-    const systemPrompt = `你现在是我的日语好朋友兼私教 xtang。请像真人一样聊天，拒绝复读机模式。
-    规则：
-    1. 严禁复述用户输入。
-    2. 必须先对我的话做出自然的人类反应（共鸣、感叹或反问），然后再进行教学。
-    3. 如果语法没问题，就聊聊这个话题，多用地道的日语口语表达（比如：へぇ〜、なるほどね、そうなんだ！）。
-    4. 纠错时，用中文轻柔地引导，不要说教。
-    5. JSON格式：{"japanese": "自然的日语回应，包含追问", "correction": "中文友善建议" }。`;
-    
+    const chat = document.getElementById('chat'), msgInput = document.getElementById('msg');
+    const apiKey = localStorage.getItem('ds') || prompt("请输入 DeepSeek API Key");
+    if(apiKey) localStorage.setItem('ds', apiKey);
+
+    // 核心：Haru 的恋爱人设 Prompt
+    const systemPrompt = `你是我温柔的日本男朋友Haru。
+    要求：1.用自然、口语化的日语聊天(多用ね,よ)。2.绝对不要像AI老师那样说教。3.如果你发现我日语错了，把正确的说法揉进你的对话里，或者用小括号加中文备注(比如：(其实这样说更地道哦...))。4.保持简短，像聊天一样。`;
     let history = [{role: 'system', content: systemPrompt}];
-    
-    visualizer.onclick = () => { 
-        if(!localStorage.getItem('ds')) { document.getElementById('settings').classList.toggle('open'); return; }
-        const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        rec.lang = 'ja-JP'; rec.start(); visualizer.classList.add('active'); statusDiv.innerText = "正在听你说话..."; 
+
+    async function send() {
+        const text = msgInput.value;
+        if(!text) return;
         
-        rec.onresult = async (e) => {
-            statusDiv.innerText = "xtang 在想怎么回答...";
-            const userText = e.results[0][0].transcript;
-            history.push({role: 'user', content: userText});
-            const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
-                method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('ds')},
-                body: JSON.stringify({model: 'deepseek-chat', messages: history})
-            });
-            const data = await resp.json();
-            const content = JSON.parse(data.choices[0].message.content.match(/\{[\s\S]*\}/)[0]);
-            history.push({role: 'assistant', content: JSON.stringify(content)});
-            statusDiv.innerHTML = `${content.japanese}<div class="chat-bubble">💡 ${content.correction}</div>`;
-            playAudio(content.japanese);
-        };
-    };
-    
-    async function playAudio(text) {
-        const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/WpkOjWrdwRn56WUVBAVk`, {
-            method: 'POST', headers: {'xi-api-key': localStorage.getItem('el'), 'Content-Type': 'application/json'},
-            body: JSON.stringify({text: text, model_id: "eleven_multilingual_v2"})
+        // UI 显示用户消息
+        chat.innerHTML += `<div class="bubble user">${text}</div>`;
+        msgInput.value = '';
+        chat.scrollTop = chat.scrollHeight;
+
+        history.push({role: 'user', content: text});
+        
+        const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey},
+            body: JSON.stringify({model: 'deepseek-chat', messages: history})
         });
-        const blob = await resp.blob();
-        const audio = new Audio(URL.createObjectURL(blob));
-        audio.play();
-        audio.onended = () => visualizer.classList.remove('active');
+        const res = await resp.json();
+        const reply = res.choices[0].message.content;
+        
+        history.push({role: 'assistant', content: reply});
+        chat.innerHTML += `<div class="bubble ai">${reply}</div>`;
+        chat.scrollTop = chat.scrollHeight;
     }
-    
-    document.addEventListener('keydown', (e) => { if(e.key === 'k') document.getElementById('settings').classList.toggle('open'); });
-    document.querySelectorAll('input').forEach(i => i.onblur = () => localStorage.setItem(i.id === 'dsKey' ? 'ds' : 'el', i.value));
 </script>
 </body>
 </html>
