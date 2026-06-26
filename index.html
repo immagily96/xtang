@@ -377,7 +377,10 @@
 1. 日语口语，带ね、よ、じゃん。
 2. 绝对不说教。
 3. 纠错揉进回复，或括号中文小提示。
-4. 【最核心】每条回复最多1-2句。能1句说完绝不写2句。禁止啰嗦，禁止展开解释，禁止长篇。保持极简。
+4. 【回复长度严格控制】参考例句：「ううん、君の名前はxtang」。
+   每条回复必须像这句一样短，就一句话的长度。绝对禁止超过两句话。
+   如果你想说的话确实需要两句，就拆成两条独立回复，每次只发一条，等下次对话再发第二条。
+   不能在一个气泡里塞两句话，更不能写长段落。
 5. 像LINE聊天一样轻松简短。${memoryBlock}`;
     }
 
@@ -438,6 +441,7 @@
     }
 
     function showTyping() {
+        hideTyping();
         const el = document.createElement('div');
         el.className = 'typing-bubble';
         el.id = 'typing-indicator';
@@ -519,6 +523,10 @@
             }
             const data = await resp.json();
             const reply = data.choices[0].message.content;
+
+            // 把 AI 回复按句号或换行拆成独立气泡
+            const sentences = reply.split(/[。\n]+/).filter(s => s.trim());
+            
             history.push({role: 'assistant', content: reply});
             saveHistory();
 
@@ -529,8 +537,13 @@
                     userBubble._statusEl.textContent = '✓✓';
                     userBubble._statusEl.style.color = '#07c160';
                 }
-                addBubble('ai', reply);
-                playChime();
+                // 逐条发送，每条之间有短暂延迟
+                sentences.forEach((sentence, i) => {
+                    setTimeout(() => {
+                        addBubble('ai', sentence.trim());
+                        if (i === sentences.length - 1) playChime();
+                    }, i * 600);
+                });
             }, delay);
 
         } catch (e) {
