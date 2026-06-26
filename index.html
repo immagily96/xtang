@@ -27,124 +27,75 @@
         }
         body.theme-warm { background: #fdf6f0; }
 
-        /* ── 顶部标题栏 ── */
         #header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 44px;
-            background: #f7f7f7;
-            border-bottom: 1px solid #dcdcdc;
-            display: flex;
-            align-items: center;
-            padding: 0 14px;
-            z-index: 11;
-            gap: 10px;
+            position: fixed; top: 0; left: 0; right: 0; height: 44px;
+            background: #f7f7f7; border-bottom: 1px solid #dcdcdc;
+            display: flex; align-items: center; padding: 0 14px; z-index: 11; gap: 10px;
         }
         #header .avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
+            width: 32px; height: 32px; border-radius: 50%;
             background: linear-gradient(135deg, #6366f1, #4f46e5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0; position: relative;
         }
-        #header .name {
-            font-size: 15px;
-            font-weight: 600;
-            color: #333;
-        }
+        #header .name { font-size: 15px; font-weight: 600; color: #333; }
         #header .persona-badge {
-            font-size: 11px;
-            color: #888;
-            background: #e8e8e8;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-left: 4px;
+            font-size: 11px; color: #888; background: #e8e8e8;
+            padding: 2px 8px; border-radius: 10px; margin-left: 4px;
         }
+        .unread-dot {
+            display: none;
+            position: absolute; top: -2px; right: -2px;
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #ef4444; border: 1.5px solid white;
+        }
+        .unread-dot.show { display: block; }
 
         #chat {
-            position: fixed;
-            top: 44px;
-            left: 0;
-            right: 0;
-            bottom: 50px;
-            overflow-y: auto;
-            padding: 10px 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            position: fixed; top: 44px; left: 0; right: 0; bottom: 50px;
+            overflow-y: auto; padding: 10px 14px;
+            display: flex; flex-direction: column; gap: 8px;
             -webkit-overflow-scrolling: touch;
         }
 
         .bubble {
-            max-width: 78%;
-            padding: 8px 12px;
-            border-radius: 16px;
-            font-size: 14px;
-            line-height: 1.35;
-            word-wrap: break-word;
-            position: relative;
-            cursor: default;
+            max-width: 78%; padding: 8px 12px; border-radius: 16px;
+            font-size: 14px; line-height: 1.35; word-wrap: break-word;
+            position: relative; cursor: default;
         }
         .ai {
-            background: white;
-            align-self: flex-start;
+            background: white; align-self: flex-start;
             border-bottom-left-radius: 4px;
         }
         body.theme-dark .ai { background: #3a3a3a; color: #eee; }
         .ai::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: -6px;
-            width: 0;
-            height: 0;
-            border-right: 7px solid white;
-            border-top: 7px solid transparent;
+            content: ''; position: absolute; bottom: 0; left: -6px;
+            width: 0; height: 0;
+            border-right: 7px solid white; border-top: 7px solid transparent;
         }
         body.theme-dark .ai::after { border-right-color: #3a3a3a; }
 
         .user {
-            background: #95ec69;
-            align-self: flex-end;
+            background: #95ec69; align-self: flex-end;
             border-bottom-right-radius: 4px;
         }
         .user::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: -6px;
-            width: 0;
-            height: 0;
-            border-left: 7px solid #95ec69;
-            border-top: 7px solid transparent;
+            content: ''; position: absolute; bottom: 0; right: -6px;
+            width: 0; height: 0;
+            border-left: 7px solid #95ec69; border-top: 7px solid transparent;
         }
         .user .msg-status {
-            position: absolute;
-            bottom: 3px;
-            right: -16px;
-            font-size: 10px;
-            color: #aaa;
+            position: absolute; bottom: 3px; right: -16px;
+            font-size: 10px; color: #aaa;
         }
 
         .bubble:active { opacity: 0.7; }
         .copy-toast {
-            position: fixed;
-            top: 50%;
-            left: 50%;
+            position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 6px 14px;
-            border-radius: 16px;
-            font-size: 12px;
-            z-index: 999;
-            pointer-events: none;
+            background: rgba(0,0,0,0.7); color: white;
+            padding: 6px 14px; border-radius: 16px; font-size: 12px;
+            z-index: 999; pointer-events: none;
             animation: toastFade 1.2s ease forwards;
         }
         @keyframes toastFade {
@@ -155,33 +106,20 @@
         }
 
         .typing-bubble {
-            align-self: flex-start;
-            background: white;
-            padding: 10px 14px;
-            border-radius: 16px;
+            align-self: flex-start; background: white;
+            padding: 10px 14px; border-radius: 16px;
             border-bottom-left-radius: 4px;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            position: relative;
+            display: flex; align-items: center; gap: 3px; position: relative;
         }
         body.theme-dark .typing-bubble { background: #3a3a3a; }
         .typing-bubble::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: -6px;
-            width: 0;
-            height: 0;
-            border-right: 7px solid white;
-            border-top: 7px solid transparent;
+            content: ''; position: absolute; bottom: 0; left: -6px;
+            width: 0; height: 0;
+            border-right: 7px solid white; border-top: 7px solid transparent;
         }
         body.theme-dark .typing-bubble::after { border-right-color: #3a3a3a; }
         .typing-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #bbb;
+            width: 6px; height: 6px; border-radius: 50%; background: #bbb;
             animation: dotBounce 1.2s infinite ease-in-out;
         }
         .typing-dot:nth-child(1) { animation-delay: 0s; }
@@ -193,155 +131,122 @@
         }
 
         .time-divider {
-            text-align: center;
-            font-size: 11px;
-            color: #999;
-            margin: 4px 0;
-            user-select: none;
+            text-align: center; font-size: 11px; color: #999;
+            margin: 4px 0; user-select: none;
         }
 
+        #context-menu {
+            display: none; position: fixed; z-index: 200;
+            background: white; border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+            padding: 6px 0; min-width: 120px;
+        }
+        #context-menu.show { display: block; }
+        #context-menu .menu-item {
+            padding: 10px 18px; font-size: 14px; color: #333;
+            cursor: pointer; white-space: nowrap;
+        }
+        #context-menu .menu-item:active { background: #f5f5f5; }
+
         #quick-replies {
-            position: fixed;
-            top: 44px;
-            left: 0;
-            right: 0;
-            height: 0;
-            overflow: hidden;
-            z-index: 9;
-            background: rgba(255,255,255,0.92);
-            backdrop-filter: blur(6px);
+            position: fixed; top: 44px; left: 0; right: 0; height: 0;
+            overflow: hidden; z-index: 9;
+            background: rgba(255,255,255,0.92); backdrop-filter: blur(6px);
             border-bottom: 1px solid #e0e0e0;
             transition: height 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 0 10px;
-            flex-wrap: nowrap;
-            overflow-x: auto;
+            display: flex; align-items: center; gap: 6px;
+            padding: 0 10px; flex-wrap: nowrap; overflow-x: auto;
         }
         #quick-replies.open { height: 40px; }
         .quick-tag {
-            flex-shrink: 0;
-            background: #f0f0f0;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 14px;
-            font-size: 12px;
-            color: #333;
-            cursor: pointer;
-            white-space: nowrap;
+            flex-shrink: 0; background: #f0f0f0; border: none;
+            padding: 5px 10px; border-radius: 14px; font-size: 12px;
+            color: #333; cursor: pointer; white-space: nowrap;
         }
         .quick-tag:active { background: #e0e0e0; }
 
         #input-area {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 50px;
-            background: #f7f7f7;
-            display: flex;
-            padding: 6px 10px;
-            border-top: 1px solid #dcdcdc;
-            align-items: center;
-            z-index: 10;
-            gap: 6px;
+            position: fixed; bottom: 0; left: 0; right: 0; height: 50px;
+            background: #f7f7f7; display: flex; padding: 6px 10px;
+            border-top: 1px solid #dcdcdc; align-items: center;
+            z-index: 10; gap: 6px;
         }
         input {
-            flex: 1;
-            border: 1px solid #ccc;
-            border-radius: 16px;
-            padding: 6px 12px;
-            font-size: 14px;
-            outline: none;
-            background: white;
+            flex: 1; border: 1px solid #ccc; border-radius: 16px;
+            padding: 6px 12px; font-size: 14px; outline: none; background: white;
         }
         button {
-            background: #07c160;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 16px;
-            font-size: 13px;
-            white-space: nowrap;
-            cursor: pointer;
+            background: #07c160; color: white; border: none;
+            padding: 6px 12px; border-radius: 16px; font-size: 13px;
+            white-space: nowrap; cursor: pointer;
         }
         button:disabled { background: #aaa; }
         #quickToggle {
-            background: #f0f0f0;
-            color: #666;
-            font-size: 14px;
-            padding: 6px 8px;
-            border-radius: 16px;
+            background: #f0f0f0; color: #666; font-size: 14px;
+            padding: 6px 8px; border-radius: 16px;
         }
 
         #top-bar {
-            position: fixed;
-            top: 48px;
-            right: 10px;
-            z-index: 11;
-            display: flex;
-            gap: 4px;
+            position: fixed; top: 48px; right: 10px; z-index: 11;
+            display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end;
         }
         .top-btn {
-            background: rgba(255,255,255,0.8);
-            border: none;
-            padding: 3px 7px;
-            border-radius: 8px;
-            font-size: 10px;
-            color: #666;
-            cursor: pointer;
-            backdrop-filter: blur(4px);
+            background: rgba(255,255,255,0.8); border: none;
+            padding: 3px 7px; border-radius: 8px; font-size: 10px;
+            color: #666; cursor: pointer; backdrop-filter: blur(4px);
         }
+        .top-btn.active { background: #6366f1; color: white; }
 
         #memory-overlay, #persona-overlay {
-            display: none;
-            position: fixed;
+            display: none; position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.4);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
+            background: rgba(0,0,0,0.4); z-index: 100;
+            justify-content: center; align-items: center;
         }
         #memory-overlay.show, #persona-overlay.show { display: flex; }
         #memory-card, #persona-card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            width: 85%;
-            max-width: 360px;
+            background: white; border-radius: 16px; padding: 20px;
+            width: 85%; max-width: 360px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.18);
         }
         #memory-card h3, #persona-card h3 { margin: 0 0 8px 0; font-size: 17px; color: #333; }
         #memory-card p, #persona-card p { margin: 0 0 10px 0; font-size: 12px; color: #999; }
         #memory-card textarea, #persona-card textarea {
-            width: 100%;
-            height: 180px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 10px;
-            font-size: 14px;
-            line-height: 1.6;
-            outline: none;
-            resize: vertical;
-            box-sizing: border-box;
-            font-family: -apple-system, sans-serif;
+            width: 100%; height: 180px; border: 1px solid #ddd;
+            border-radius: 10px; padding: 10px; font-size: 14px;
+            line-height: 1.6; outline: none; resize: vertical;
+            box-sizing: border-box; font-family: -apple-system, sans-serif;
         }
-        #memory-card .btn-row, #persona-card .btn-row { display: flex; gap: 10px; margin-top: 12px; justify-content: flex-end; }
-        #memory-card .btn-cancel, #persona-card .btn-cancel { background: #f0f0f0; color: #666; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; }
-        #memory-card .btn-save, #persona-card .btn-save { background: #07c160; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; }
+        #memory-card .btn-row, #persona-card .btn-row {
+            display: flex; gap: 10px; margin-top: 12px; justify-content: flex-end;
+        }
+        #memory-card .btn-cancel, #persona-card .btn-cancel {
+            background: #f0f0f0; color: #666; border: none;
+            padding: 8px 16px; border-radius: 20px; font-size: 14px;
+        }
+        #memory-card .btn-save, #persona-card .btn-save {
+            background: #07c160; color: white; border: none;
+            padding: 8px 16px; border-radius: 20px; font-size: 14px;
+        }
     </style>
 </head>
 <body class="theme-light">
 
-<!-- 顶部标题栏 -->
 <div id="header">
-    <div class="avatar">🐶</div>
+    <div class="avatar" id="avatarArea">
+        🐶
+        <div class="unread-dot" id="unreadDot"></div>
+    </div>
     <span class="name">xtang</span>
     <span class="persona-badge" id="personaBadge">年下彼氏</span>
 </div>
 
 <div id="chat"></div>
+
+<div id="context-menu">
+    <div class="menu-item" data-action="copy">📋 复制</div>
+    <div class="menu-item" data-action="delete">🗑️ 删除</div>
+</div>
 
 <div id="quick-replies">
     <button class="quick-tag" data-text="わかった！">わかった！</button>
@@ -353,13 +258,14 @@
 </div>
 
 <div id="top-bar">
+    <button class="top-btn" id="autoMsgBtn" title="主动消息">🔔</button>
+    <button class="top-btn" id="voiceBtn" title="语音输入">🎙️</button>
     <button class="top-btn" id="personaBtn">人设</button>
     <button class="top-btn" id="themeBtn">🎨</button>
     <button class="top-btn" id="memoryBtn">记忆</button>
     <button class="top-btn" id="clearBtn">清空</button>
 </div>
 
-<!-- 记忆卡片 -->
 <div id="memory-overlay">
     <div id="memory-card">
         <h3>✏️ 关于你</h3>
@@ -372,7 +278,6 @@
     </div>
 </div>
 
-<!-- 人设卡片 -->
 <div id="persona-overlay">
     <div id="persona-card">
         <h3>🎭 xtang 的人设</h3>
@@ -410,23 +315,25 @@
     const quickToggle = document.getElementById('quickToggle');
     const quickReplies = document.getElementById('quick-replies');
     const themeBtn = document.getElementById('themeBtn');
+    const voiceBtn = document.getElementById('voiceBtn');
+    const autoMsgBtn = document.getElementById('autoMsgBtn');
+    const unreadDot = document.getElementById('unreadDot');
+    const contextMenu = document.getElementById('context-menu');
 
-    // ── 默认人设 ──
     const defaultPersona = `22岁的大学生，性格开朗温柔
 喜欢叫对方"姐姐"
 有点天然呆但很真诚
 在东京读设计专业
 喜欢摄影和咖啡
 偶尔会撒娇，但该认真的时候很可靠
-说话语气轻松活泼，带一点年轻人的慵懒感`;
+说话语气轻松活泼，带一点年轻人的慵懒感
+正在自学中文，会一点点初级词汇，偶尔在句子末尾蹦出几个简单的中文词，比如"谢谢"、"好吃"、"厉害"、"好想你"、"好开心"之类的，显得很努力在学中文
+聊天时喜欢用emoji和颜文字表达情绪，比如😊✨🥺💕(≧▽≦)(´；ω；｀)，让对话更生动`;
 
     const themes = ['theme-light', 'theme-dark', 'theme-grid', 'theme-warm'];
     let themeIdx = 0;
     const savedTheme = localStorage.getItem('xtang_theme');
-    if (savedTheme && themes.includes(savedTheme)) {
-        document.body.className = savedTheme;
-        themeIdx = themes.indexOf(savedTheme);
-    }
+    if (savedTheme && themes.includes(savedTheme)) { document.body.className = savedTheme; themeIdx = themes.indexOf(savedTheme); }
     themeBtn.onclick = () => {
         themeIdx = (themeIdx + 1) % themes.length;
         document.body.className = themes[themeIdx];
@@ -434,72 +341,66 @@
     };
 
     let apiKey = localStorage.getItem('xtang_ds_key');
-    if (!apiKey) {
-        apiKey = prompt("请输入 DeepSeek API Key：");
-        if (apiKey) localStorage.setItem('xtang_ds_key', apiKey);
-    }
+    if (!apiKey) { apiKey = prompt("请输入 DeepSeek API Key："); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
 
-    function getUserMemory() {
-        return localStorage.getItem('xtang_memory') || '';
-    }
+    function getUserMemory() { return localStorage.getItem('xtang_memory') || ''; }
+    function getUserPersona() { return localStorage.getItem('xtang_persona') || defaultPersona; }
 
-    function getUserPersona() {
-        return localStorage.getItem('xtang_persona') || defaultPersona;
-    }
-
-    // 更新顶部人设标签
     function updatePersonaBadge() {
         const persona = getUserPersona();
         const firstLine = persona.split('\n')[0].trim();
-        if (firstLine.length <= 10) {
-            personaBadge.textContent = firstLine;
-        } else {
-            personaBadge.textContent = firstLine.substring(0, 8) + '…';
-        }
+        personaBadge.textContent = firstLine.length <= 10 ? firstLine : firstLine.substring(0, 8) + '…';
+    }
+
+    function getCurrentTimeString() {
+        const now = new Date();
+        return now.toLocaleString('zh-CN', { weekday: 'long', hour: '2-digit', minute: '2-digit' });
     }
 
     function buildSystemPrompt() {
         const persona = getUserPersona();
         const memory = getUserMemory();
-        let memoryBlock = '';
-        if (memory.trim()) {
-            memoryBlock = `\n\n关于正在和你聊天的人（自然融入对话，不要刻意背诵）：\n${memory}`;
-        }
+        const timeStr = getCurrentTimeString();
+        let memoryBlock = memory.trim() ? `\n\n关于正在和你聊天的人（自然融入对话，不要刻意背诵）：\n${memory}` : '';
         return `你是xtang，以下是你的完整人设。请严格按照人设扮演，不要跳出角色。
 
 【你的人设】
 ${persona}
 
+【当前时间】
+${timeStr}
+（你可以根据时间调整语气，比如深夜说"早点休息ね"，早上说"おはよう"，但不要在每条消息里都提时间，自然就好）
+
 【对话规则】
-1. 日语口语，带ね、よ、じゃん。
-2. 绝对不说教。
-3. 纠错揉进回复，或括号中文小提示。
-4. 【一次只能说一句话】每一条回复只能包含一句话。参考长度：「ううん、君の名前はxtang」。禁止把两句话放在同一条消息里。禁止长段落、禁止展开解释。
-5. 像LINE一样轻松简短。${memoryBlock}`;
+1. 日语口语为主，带ね、よ、じゃん。
+2. 因为你在学中文，偶尔（大约每3-5句话）可以在句子末尾加一两个简单的中文词。不要整句说中文，只蹦一两个词。
+3. 适当加emoji或颜文字让对话更生动自然。
+4. 绝对不说教。
+5. 纠错揉进回复，或括号中文小提示。
+6. 【一次只能说一句话】每一条回复只能包含一句话。禁止两句话放一起。禁止长段落、展开解释。
+7. 像LINE一样轻松简短。${memoryBlock}`;
     }
 
     const MAX_ROUNDS = 20;
     const MAX_MESSAGES = 1 + MAX_ROUNDS * 2;
     let history = [{role: 'system', content: buildSystemPrompt()}];
     let lastMessageTime = 0;
+    let autoMsgTimer = null;
+    let autoMsgEnabled = localStorage.getItem('xtang_auto_msg') === 'true';
 
     const saved = localStorage.getItem('xtang_history');
     if (saved) {
         try {
             history = JSON.parse(saved);
-            if (history[0]?.role !== 'system') {
-                history.unshift({role: 'system', content: buildSystemPrompt()});
-            } else {
-                history[0].content = buildSystemPrompt();
-            }
-        } catch(e) {
-            history = [{role: 'system', content: buildSystemPrompt()}];
-        }
+            if (history[0]?.role !== 'system') history.unshift({role: 'system', content: buildSystemPrompt()});
+            else history[0].content = buildSystemPrompt();
+        } catch(e) { history = [{role: 'system', content: buildSystemPrompt()}]; }
     }
 
+    if (autoMsgEnabled) { autoMsgBtn.classList.add('active'); startAutoMsg(); }
+
     function renderHistory() {
-        chat.innerHTML = '';
-        lastMessageTime = 0;
+        chat.innerHTML = ''; lastMessageTime = 0;
         for (let i = 1; i < history.length; i++) {
             const role = history[i].role === 'user' ? 'user' : 'ai';
             addBubble(role, history[i].content, false);
@@ -507,8 +408,7 @@ ${persona}
         if (history.length <= 1) {
             const greeting = 'おはよう！今日は何してたの？😊';
             addBubble('ai', greeting, false);
-            history.push({role: 'assistant', content: greeting});
-            saveHistory();
+            history.push({role: 'assistant', content: greeting}); saveHistory();
         }
     }
 
@@ -516,9 +416,7 @@ ${persona}
         const now = Date.now();
         if (lastMessageTime && now - lastMessageTime > 5 * 60 * 1000) {
             const timeStr = new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
-            const div = document.createElement('div');
-            div.className = 'time-divider';
-            div.textContent = timeStr;
+            const div = document.createElement('div'); div.className = 'time-divider'; div.textContent = timeStr;
             chat.appendChild(div);
         }
         lastMessageTime = now;
@@ -536,72 +434,100 @@ ${persona}
 
     function showTyping() {
         hideTyping();
-        const el = document.createElement('div');
-        el.className = 'typing-bubble';
-        el.id = 'typing-indicator';
+        const el = document.createElement('div'); el.className = 'typing-bubble'; el.id = 'typing-indicator';
         el.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
-        chat.appendChild(el);
-        chat.scrollTop = chat.scrollHeight;
+        chat.appendChild(el); chat.scrollTop = chat.scrollHeight;
     }
-
-    function hideTyping() {
-        const el = document.getElementById('typing-indicator');
-        if (el) el.remove();
-    }
+    function hideTyping() { const el = document.getElementById('typing-indicator'); if (el) el.remove(); }
 
     function playChime() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const o = ctx.createOscillator();
-            const g = ctx.createGain();
+            const o = ctx.createOscillator(); const g = ctx.createGain();
             o.type = 'sine';
             o.frequency.setValueAtTime(1200, ctx.currentTime);
             o.frequency.setValueAtTime(1600, ctx.currentTime + 0.06);
             g.gain.setValueAtTime(0.3, ctx.currentTime);
             g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-            o.connect(g);
-            g.connect(ctx.destination);
-            o.start(ctx.currentTime);
-            o.stop(ctx.currentTime + 0.2);
+            o.connect(g); g.connect(ctx.destination);
+            o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.2);
         } catch(e) {}
+    }
+
+    function isNearBottom() {
+        return chat.scrollHeight - chat.scrollTop - chat.clientHeight < 80;
     }
 
     function addBubble(role, text, showDivider = true) {
         if (showDivider) maybeAddTimeDivider();
-        const div = document.createElement('div');
-        div.className = `bubble ${role}`;
-        div.textContent = text;
+        const div = document.createElement('div'); div.className = `bubble ${role}`; div.textContent = text;
         if (role === 'user') {
-            const status = document.createElement('span');
-            status.className = 'msg-status';
-            status.textContent = '✓';
-            div.appendChild(status);
-            div._statusEl = status;
+            const status = document.createElement('span'); status.className = 'msg-status';
+            status.textContent = '✓'; div.appendChild(status); div._statusEl = status;
         }
+
+        let longPressTimer;
+        div.addEventListener('touchstart', (e) => {
+            longPressTimer = setTimeout(() => {
+                contextMenu._targetBubble = div;
+                contextMenu._targetText = text;
+                contextMenu.style.left = e.touches[0].clientX + 'px';
+                contextMenu.style.top = e.touches[0].clientY + 'px';
+                contextMenu.classList.add('show');
+            }, 500);
+        });
+        div.addEventListener('touchend', () => clearTimeout(longPressTimer));
+        div.addEventListener('touchmove', () => clearTimeout(longPressTimer));
         div.addEventListener('dblclick', () => {
             navigator.clipboard.writeText(text).then(() => {
-                const toast = document.createElement('div');
-                toast.className = 'copy-toast';
-                toast.textContent = '已复制';
-                document.body.appendChild(toast);
+                const toast = document.createElement('div'); toast.className = 'copy-toast';
+                toast.textContent = '已复制'; document.body.appendChild(toast);
                 setTimeout(() => toast.remove(), 1200);
             });
         });
+
         chat.appendChild(div);
-        requestAnimationFrame(() => { chat.scrollTop = chat.scrollHeight; });
+        const wasNearBottom = isNearBottom();
+        requestAnimationFrame(() => { if (wasNearBottom) chat.scrollTop = chat.scrollHeight; });
+
+        if (role === 'ai' && !wasNearBottom) {
+            unreadDot.classList.add('show');
+        }
+
         return div;
     }
 
-    async function send(prefillText) {
-        const text = prefillText || msgInput.value.trim();
-        if (!text || !apiKey) return;
+    chat.addEventListener('scroll', () => {
+        if (isNearBottom()) unreadDot.classList.remove('show');
+    });
 
-        sendBtn.disabled = true;
-        msgInput.disabled = true;
-        if (!prefillText) msgInput.value = '';
+    contextMenu.querySelectorAll('.menu-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const action = item.dataset.action;
+            if (action === 'copy' && contextMenu._targetText) {
+                navigator.clipboard.writeText(contextMenu._targetText).then(() => {
+                    const toast = document.createElement('div'); toast.className = 'copy-toast';
+                    toast.textContent = '已复制'; document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 1200);
+                });
+            } else if (action === 'delete' && contextMenu._targetBubble) {
+                contextMenu._targetBubble.remove();
+            }
+            contextMenu.classList.remove('show');
+        });
+    });
+    document.addEventListener('click', (e) => {
+        if (!contextMenu.contains(e.target)) contextMenu.classList.remove('show');
+    });
 
-        const userBubble = addBubble('user', text);
-        history.push({role: 'user', content: text});
+    async function sendMessage(text, isAuto = false) {
+        if (!apiKey) return;
+        const userBubble = isAuto ? null : addBubble('user', text);
+        if (!isAuto) {
+            history.push({role: 'user', content: text});
+        } else {
+            history.push({role: 'system', content: `[现在是${getCurrentTimeString()}，你主动给正在聊天的人发一条消息。内容要自然，像突然想到对方一样。可以是一个小日常、一句关心、一个有趣的想法。记住一次只能说一句话。]`});
+        }
         if (history[0]?.role === 'system') history[0].content = buildSystemPrompt();
         showTyping();
 
@@ -609,48 +535,108 @@ ${persona}
             const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey},
-                body: JSON.stringify({model: 'deepseek-chat', messages: history, temperature: 0.7})
+                body: JSON.stringify({model: 'deepseek-chat', messages: history, temperature: 0.8})
             });
-            if (!resp.ok) {
-                const errData = await resp.json().catch(() => ({}));
-                throw new Error(errData.error?.message || `HTTP ${resp.status}`);
-            }
+            if (!resp.ok) { const errData = await resp.json().catch(() => ({})); throw new Error(errData.error?.message || `HTTP ${resp.status}`); }
             const data = await resp.json();
             const reply = data.choices[0].message.content;
-
             const sentences = reply.split(/[。\n]+/).filter(s => s.trim());
 
-            history.push({role: 'assistant', content: reply});
+            if (isAuto) {
+                history.pop();
+                history.push({role: 'assistant', content: reply});
+            } else {
+                history.push({role: 'assistant', content: reply});
+            }
             saveHistory();
 
-            const delay = 1500 + Math.random() * 1500;
+            const delay = isAuto ? 500 : 1500 + Math.random() * 1500;
             setTimeout(() => {
                 hideTyping();
-                if (userBubble._statusEl) {
-                    userBubble._statusEl.textContent = '✓✓';
-                    userBubble._statusEl.style.color = '#07c160';
+                if (userBubble && userBubble._statusEl) {
+                    userBubble._statusEl.textContent = '✓✓'; userBubble._statusEl.style.color = '#07c160';
                 }
                 sentences.forEach((sentence, i) => {
                     setTimeout(() => {
                         addBubble('ai', sentence.trim());
-                        if (i === sentences.length - 1) playChime();
+                        if (i === sentences.length - 1 && !isAuto) playChime();
                     }, i * 700);
                 });
             }, delay);
-
         } catch (e) {
             hideTyping();
-            if (userBubble._statusEl) { userBubble._statusEl.textContent = '⚠'; userBubble._statusEl.style.color = '#f44'; }
-            const tips = { 'AuthenticationError': 'API Key 不对', 'Insufficient Balance': '余额不足', 'Rate limit': '请求太快' };
-            let msg = 'ごめん、エラーが発生しました🙇';
-            for (const [k, v] of Object.entries(tips)) { if (e.message.includes(k)) { msg = v; break; } }
-            addBubble('ai', msg);
-        } finally {
-            sendBtn.disabled = false;
-            msgInput.disabled = false;
-            msgInput.focus();
+            if (isAuto) history.pop();
+            console.error('xtang API 错误:', e.message);
         }
     }
+
+    async function send(prefillText) {
+        const text = prefillText || msgInput.value.trim();
+        if (!text || !apiKey) return;
+        sendBtn.disabled = true; msgInput.disabled = true;
+        if (!prefillText) msgInput.value = '';
+        await sendMessage(text, false);
+        sendBtn.disabled = false; msgInput.disabled = false; msgInput.focus();
+    }
+
+    function startAutoMsg() {
+        stopAutoMsg();
+        function scheduleNext() {
+            const delay = 10 * 60 * 1000 + Math.random() * 10 * 60 * 1000;
+            autoMsgTimer = setTimeout(() => {
+                sendMessage('', true);
+                scheduleNext();
+            }, delay);
+        }
+        scheduleNext();
+    }
+    function stopAutoMsg() {
+        if (autoMsgTimer) { clearTimeout(autoMsgTimer); autoMsgTimer = null; }
+    }
+
+    autoMsgBtn.onclick = () => {
+        autoMsgEnabled = !autoMsgEnabled;
+        localStorage.setItem('xtang_auto_msg', autoMsgEnabled);
+        if (autoMsgEnabled) {
+            autoMsgBtn.classList.add('active');
+            startAutoMsg();
+            const toast = document.createElement('div'); toast.className = 'copy-toast';
+            toast.textContent = '主动消息已开启 🔔'; document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 1200);
+        } else {
+            autoMsgBtn.classList.remove('active');
+            stopAutoMsg();
+            const toast = document.createElement('div'); toast.className = 'copy-toast';
+            toast.textContent = '主动消息已关闭'; document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 1200);
+        }
+    };
+
+    voiceBtn.onclick = () => {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const rec = new SpeechRecognition();
+            rec.lang = 'ja-JP';
+            rec.interimResults = false;
+            rec.maxAlternatives = 1;
+            rec.onstart = () => {
+                const toast = document.createElement('div'); toast.className = 'copy-toast';
+                toast.textContent = '🎙️ 正在听...'; document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2000);
+            };
+            rec.onresult = (e) => { send(e.results[0][0].transcript); };
+            rec.onerror = () => {
+                const toast = document.createElement('div'); toast.className = 'copy-toast';
+                toast.textContent = '语音识别失败，请手动输入'; document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 1200);
+            };
+            rec.start();
+        } else {
+            const toast = document.createElement('div'); toast.className = 'copy-toast';
+            toast.textContent = '你的浏览器不支持语音输入'; document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 1200);
+        }
+    };
 
     msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
     sendBtn.onclick = () => send();
@@ -663,38 +649,31 @@ ${persona}
     clearBtn.onclick = () => {
         if (confirm('确定清空所有对话吗？（记忆和人设会保留）')) {
             history = [{role: 'system', content: buildSystemPrompt()}];
-            localStorage.removeItem('xtang_history');
-            chat.innerHTML = '';
-            lastMessageTime = 0;
+            localStorage.removeItem('xtang_history'); chat.innerHTML = ''; lastMessageTime = 0;
             const greeting = 'おはよう！今日は何してたの？😊';
             addBubble('ai', greeting, false);
-            history.push({role: 'assistant', content: greeting});
-            saveHistory();
+            history.push({role: 'assistant', content: greeting}); saveHistory();
         }
     };
 
-    // ── 记忆卡片 ──
     memoryBtn.onclick = () => { memoryText.value = getUserMemory(); memoryOverlay.classList.add('show'); };
     memoryCancel.onclick = () => memoryOverlay.classList.remove('show');
     memorySave.onclick = () => {
         localStorage.setItem('xtang_memory', memoryText.value.trim());
         if (history[0]?.role === 'system') history[0].content = buildSystemPrompt();
-        saveHistory();
-        memoryOverlay.classList.remove('show');
+        saveHistory(); memoryOverlay.classList.remove('show');
         const toast = document.createElement('div'); toast.className = 'copy-toast'; toast.textContent = '记忆已保存';
         document.body.appendChild(toast); setTimeout(() => toast.remove(), 1200);
     };
     memoryOverlay.addEventListener('click', (e) => { if (e.target === memoryOverlay) memoryOverlay.classList.remove('show'); });
 
-    // ── 人设卡片 ──
     personaBtn.onclick = () => { personaText.value = getUserPersona(); personaOverlay.classList.add('show'); };
     personaCancel.onclick = () => personaOverlay.classList.remove('show');
     personaSave.onclick = () => {
         localStorage.setItem('xtang_persona', personaText.value.trim());
         updatePersonaBadge();
         if (history[0]?.role === 'system') history[0].content = buildSystemPrompt();
-        saveHistory();
-        personaOverlay.classList.remove('show');
+        saveHistory(); personaOverlay.classList.remove('show');
         const toast = document.createElement('div'); toast.className = 'copy-toast'; toast.textContent = '人设已更新';
         document.body.appendChild(toast); setTimeout(() => toast.remove(), 1200);
     };
