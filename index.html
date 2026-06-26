@@ -1,54 +1,71 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>xtang</title>
+    <title>xtang · 你的日语私教</title>
     <style>
-        :root { --soft-green: #8fb39e; --bg: linear-gradient(135deg, #f0f7f4, #fff5e6); }
-        body { background: var(--bg); margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
-        .box { width: 85%; max-width: 400px; text-align: center; }
-        #trigger { width: 120px; height: 120px; background: var(--soft-green); border-radius: 50%; margin: 0 auto 30px; box-shadow: 0 5px 15px rgba(143,179,158,0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
-        #output { font-size: 1.2rem; margin-bottom: 10px; color: #374151; }
-        #hint { font-size: 0.9rem; color: #7a9ead; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 10px; }
+        :root { --bg-start: #fdfcf0; --bg-end: #eef2f3; --text: #4a4a4a; --accent: #ffb7b2; }
+        body { background: linear-gradient(135deg, var(--bg-start), var(--bg-end)); color: var(--text); 
+               font-family: 'Hiragino Sans', 'PingFang SC', sans-serif; 
+               margin: 0; display: flex; align-items: center; justify-content: center; 
+               min-height: 100vh; overflow: hidden; }
+        .container { width: 100%; max-width: 100%; text-align: center; padding: 20px; }
+        #visualizer { width: 150px; height: 150px; margin: 0 auto 40px; border-radius: 50%; 
+                      background: var(--accent); opacity: 0.8; cursor: pointer; transition: 0.3s; }
+        #visualizer.active { animation: breath 1.5s infinite ease-in-out; }
+        @keyframes breath { 0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255,183,178,0.5); } 50% { transform: scale(1.1); box-shadow: 0 0 40px rgba(255,183,178,0.8); } }
+        #status { font-size: 1.4rem; line-height: 1.6; margin-bottom: 30px; font-weight: 400; padding: 0 20px; }
+        .chat-bubble { margin: 20px auto; padding: 20px; background: rgba(255,255,255,0.7); 
+                       border-radius: 20px; font-size: 1.2rem; text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        #settings { display: none; margin-top: 30px; text-align: left; }
+        #settings.open { display: block; }
+        input { background: rgba(255,255,255,0.8); border: none; padding: 12px; width: 100%; margin-bottom: 10px; border-radius: 10px; }
     </style>
 </head>
 <body>
-<div class="box">
-    <div id="trigger">Start</div>
-    <div id="output">点击开始练习</div>
-    <div id="hint">等待语音输入...</div>
-    <div id="settings" style="margin-top:20px; opacity:0.5;">
-        <input type="password" id="dsKey" placeholder="DeepSeek Key" style="width:80px;">
-        <input type="password" id="elKey" placeholder="ElevenLabs Key" style="width:80px;">
+<div class="container">
+    <div id="visualizer"></div>
+    <div id="status">点击圆球，开始对话吧</div>
+    <div id="settings">
+        <input type="password" id="dsKey" placeholder="DeepSeek API Key">
+        <input type="password" id="elKey" placeholder="ElevenLabs API Key">
     </div>
 </div>
-
 <script>
-    const trigger = document.getElementById('trigger'), out = document.getElementById('output'), hint = document.getElementById('hint');
-    // 强制极致压缩 Prompt
-    const systemPrompt = `xtang身份：极简日语私教。规则：1.仅输出JSON ` + '{"japanese":"日语(20字内)","correction":"中文(10字内)"}' + `. 2.日语包含追问。3.禁止寒暄。`;
+    const statusDiv = document.getElementById('status'), visualizer = document.getElementById('visualizer');
+    // 【注入灵魂的 System Prompt】
+    const systemPrompt = `你现在是我的日语好朋友兼私教 xtang。请像真人一样聊天，拒绝复读机模式。
+    规则：
+    1. 严禁复述用户输入。
+    2. 必须先对我的话做出自然的人类反应（共鸣、感叹或反问），然后再进行教学。
+    3. 如果语法没问题，就聊聊这个话题，多用地道的日语口语表达（比如：へぇ〜、なるほどね、そうなんだ！）。
+    4. 纠错时，用中文轻柔地引导，不要说教。
+    5. JSON格式：{"japanese": "自然的日语回应，包含追问", "correction": "中文友善建议" }。`;
+    
     let history = [{role: 'system', content: systemPrompt}];
-
-    trigger.onclick = () => {
-        if(!localStorage.getItem('ds')) { alert("请在下方输入API Key"); return; }
+    
+    visualizer.onclick = () => { 
+        if(!localStorage.getItem('ds')) { document.getElementById('settings').classList.toggle('open'); return; }
         const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        rec.lang = 'ja-JP'; rec.start(); trigger.innerText = "Listening";
+        rec.lang = 'ja-JP'; rec.start(); visualizer.classList.add('active'); statusDiv.innerText = "正在听你说话..."; 
+        
         rec.onresult = async (e) => {
-            trigger.innerText = "Thinking";
-            history.push({role: 'user', content: e.results[0][0].transcript});
+            statusDiv.innerText = "xtang 在想怎么回答...";
+            const userText = e.results[0][0].transcript;
+            history.push({role: 'user', content: userText});
             const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
                 method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('ds')},
                 body: JSON.stringify({model: 'deepseek-chat', messages: history})
             });
-            const res = await resp.json();
-            const content = JSON.parse(res.choices[0].message.content.match(/\{[\s\S]*\}/)[0]);
+            const data = await resp.json();
+            const content = JSON.parse(data.choices[0].message.content.match(/\{[\s\S]*\}/)[0]);
             history.push({role: 'assistant', content: JSON.stringify(content)});
-            out.innerText = content.japanese; hint.innerText = "💡 " + content.correction;
+            statusDiv.innerHTML = `${content.japanese}<div class="chat-bubble">💡 ${content.correction}</div>`;
             playAudio(content.japanese);
         };
     };
-
+    
     async function playAudio(text) {
         const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/WpkOjWrdwRn56WUVBAVk`, {
             method: 'POST', headers: {'xi-api-key': localStorage.getItem('el'), 'Content-Type': 'application/json'},
@@ -56,8 +73,11 @@
         });
         const blob = await resp.blob();
         const audio = new Audio(URL.createObjectURL(blob));
-        audio.play(); audio.onended = () => trigger.innerText = "Start";
+        audio.play();
+        audio.onended = () => visualizer.classList.remove('active');
     }
+    
+    document.addEventListener('keydown', (e) => { if(e.key === 'k') document.getElementById('settings').classList.toggle('open'); });
     document.querySelectorAll('input').forEach(i => i.onblur = () => localStorage.setItem(i.id === 'dsKey' ? 'ds' : 'el', i.value));
 </script>
 </body>
