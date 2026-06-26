@@ -3,38 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Haru · 聊天</title>
+    <title>Haru</title>
     <style>
-        body { margin: 0; background-color: #ededed; font-family: -apple-system, sans-serif; height: 100vh; display: flex; flex-direction: column; }
-        /* 聊天区域 */
-        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; padding-bottom: 100px; }
-        .bubble { max-width: 80%; padding: 10px 14px; border-radius: 8px; font-size: 16px; line-height: 1.4; position: relative; word-break: break-word; }
+        html, body { height: 100%; margin: 0; overflow: hidden; background: #ededed; font-family: sans-serif; }
+        #chat { height: calc(100% - 55px); overflow-y: auto; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; }
+        .bubble { max-width: 80%; padding: 8px 12px; border-radius: 6px; font-size: 15px; line-height: 1.3; word-wrap: break-word; }
         .ai { background: white; align-self: flex-start; }
-        .user { background: #95ec69; align-self: flex-end; color: #000; }
-        /* 固定底部的输入框 */
-        #input-area { position: fixed; bottom: 0; left: 0; width: 100%; background: #f7f7f7; padding: 10px; box-sizing: border-box; border-top: 1px solid #dcdcdc; display: flex; gap: 8px; z-index: 100; }
-        input { flex: 1; border: 1px solid #ccc; padding: 10px; border-radius: 5px; outline: none; font-size: 16px; background: white; }
-        button { background: #07c160; color: white; border: none; padding: 0 15px; border-radius: 5px; font-size: 16px; font-weight: bold; }
+        .user { background: #95ec69; align-self: flex-end; }
+        #input-area { height: 55px; background: #f7f7f7; display: flex; padding: 8px; box-sizing: border-box; border-top: 1px solid #ddd; }
+        input { flex: 1; border: 1px solid #ccc; border-radius: 4px; padding: 0 10px; font-size: 16px; outline: none; }
+        button { background: #07c160; color: white; border: none; padding: 0 15px; border-radius: 4px; margin-left: 8px; font-size: 14px; }
+        button:disabled { background: #aaa; }
     </style>
 </head>
 <body>
 
-<div id="chat">
-    <div class="bubble ai">おはよう！今日は何してたの？😊 (早安！今天做了什么呀？)</div>
-</div>
+<div id="chat"></div>
 
 <div id="input-area">
-    <input type="text" id="msg" placeholder="" autocomplete="off">
+    <input type="text" id="msg" placeholder="说点什么..." autocomplete="off">
     <button id="sendBtn" onclick="send()">发送</button>
 </div>
 
 <script>
-    const chat = document.getElementById('chat'), msgInput = document.getElementById('msg'), sendBtn = document.getElementById('sendBtn');
-    let apiKey = localStorage.getItem('haru_ds_key');
-    if (!apiKey) { apiKey = prompt("请输入 DeepSeek API Key"); if (apiKey) localStorage.setItem('haru_ds_key', apiKey); }
+    const chat = document.getElementById('chat');
+    const msgInput = document.getElementById('msg');
+    const sendBtn = document.getElementById('sendBtn');
 
-    const systemPrompt = `你是我温柔的日本男朋友Haru。要求：1.用自然、口语化的日语聊天(多用ね,よ)。2.绝不说教。3.发现错直接在对话中揉入正确表达，或用小括号加中文备注(如：(其实这样说更地道...))。4.保持简短。`;
+    // API Key
+    let apiKey = localStorage.getItem('haru_ds_key');
+    if (!apiKey) {
+        apiKey = prompt("请输入 DeepSeek API Key（仅保存在本机）：");
+        if (apiKey) localStorage.setItem('haru_ds_key', apiKey);
+    }
+
+    const systemPrompt = `你是我温柔的日本男朋友Haru。
+要求：
+1. 用自然口语化的日语聊天，多用ね、よ、じゃん
+2. 绝不说教，不要像老师或AI助手
+3. 发现我日语错了，把正确说法自然揉进你的回复，或在句尾用小括号加中文提示，例：(这里用○○更自然哦)
+4. 回复保持1-3句话，像真人聊天那样简短`;
+
+    // 对话历史管理
+    const MAX_HISTORY = 24;  // system + 最近约11轮对话
     let history = [{role: 'system', content: systemPrompt}];
+
+    // 加载上次记录
+    const saved = localStorage.getItem('haru_history');
+    if (saved) {
+        try {
+            history = JSON.parse(saved);
+        } catch(e) {}
+    }
+
+    // 渲染已保存的历史
+    function renderHistory() {
+        chat.innerHTML = '';
+        // 跳过 system prompt
+        for (let i = 1; i < history.length; i++) {
+            const msg = history[i];
+            if (msg.role === 'user') {
+                addBubble('user', msg.content);
+            } else if (msg.role === 'assistant') {
+                addBubble('ai', msg.content);
+            }
+        }
+        // 如果没有任何对话，显示初始问候
+        if (history.length <= 1) {
+            const greeting = 'おはよう！今日は何してたの？😊';
+            addBubble('ai', greeting);
+            history.push({role: 'assistant', content: greeting});
+            saveHistory();
+        }
+    }
+
+    function saveHistory() {
+        // 超过上限时，保留 system prompt + 最近记录
+        if (history.length > MAX_HISTORY) {
+            history = [history[0], ...history.slice(-(MAX_HISTORY - 1))];
+        }
+        localStorage.setItem('haru_history', JSON.stringify(history));
+    }
 
     function addBubble(role, text) {
         const div = document.createElement('div');
@@ -47,25 +96,57 @@
     async function send() {
         const text = msgInput.value.trim();
         if (!text || !apiKey) return;
+
+        // 防重复点击
+        sendBtn.disabled = true;
+        msgInput.disabled = true;
+
         addBubble('user', text);
         msgInput.value = '';
         history.push({role: 'user', content: text});
-        
+
         try {
             const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey},
-                body: JSON.stringify({model: 'deepseek-chat', messages: history, temperature: 0.7})
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + apiKey
+                },
+                body: JSON.stringify({
+                    model: 'deepseek-chat',
+                    messages: history,
+                    temperature: 0.7
+                })
             });
+
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({}));
+                throw new Error(err.error?.message || `HTTP ${resp.status}`);
+            }
+
             const data = await resp.json();
             const reply = data.choices[0].message.content;
+
             history.push({role: 'assistant', content: reply});
+            saveHistory();
             addBubble('ai', reply);
+
         } catch (e) {
-            addBubble('ai', 'ごめん、ちょっとエラーが…🙇');
+            addBubble('ai', 'ごめん、うまく聞こえなかった…もう一回送ってくれる？🙇');
+            console.error('API Error:', e.message);
+        } finally {
+            sendBtn.disabled = false;
+            msgInput.disabled = false;
+            msgInput.focus();
         }
     }
-    msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
+
+    msgInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') send();
+    });
+
+    // 初始化渲染
+    renderHistory();
 </script>
 </body>
 </html>
