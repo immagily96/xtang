@@ -11,6 +11,9 @@
             height: 100%;
             overflow: hidden;
             font-family: -apple-system, sans-serif;
+            /* 关键：防止键盘弹起时页面整体滚动 */
+            position: fixed;
+            width: 100%;
         }
 
         /* ── 聊天背景主题 ── */
@@ -26,17 +29,18 @@
         body.theme-warm { background: #fdf6f0; }
 
         #chat {
-            position: absolute;
+            position: fixed;
             top: 40px;
             left: 0;
             right: 0;
-            bottom: 55px;
+            /* bottom 由 JS 根据键盘状态动态设置 */
             overflow-y: auto;
             padding: 10px 14px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             -webkit-overflow-scrolling: touch;
+            /* 关键：聊天区自身滚动，不推动页面 */
         }
 
         /* ── 气泡基础 ── */
@@ -44,14 +48,13 @@
             max-width: 78%;
             padding: 10px 14px;
             border-radius: 18px;
-            font-size: 16px;
+            font-size: 15px;
             line-height: 1.4;
             word-wrap: break-word;
             position: relative;
             cursor: default;
         }
 
-        /* ── AI 气泡 + 左下尾巴 ── */
         .ai {
             background: white;
             align-self: flex-start;
@@ -69,4 +72,631 @@
             border-top: 8px solid transparent;
         }
         body.theme-dark .ai::after {
-            border-right-color: #3a3a3a
+            border-right-color: #3a3a3a;
+        }
+
+        .user {
+            background: #95ec69;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .user::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: -6px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid #95ec69;
+            border-top: 8px solid transparent;
+        }
+        .user .msg-status {
+            position: absolute;
+            bottom: 4px;
+            right: -18px;
+            font-size: 11px;
+            color: #aaa;
+        }
+
+        .bubble:active { opacity: 0.7; }
+        .copy-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            z-index: 999;
+            pointer-events: none;
+            animation: toastFade 1.2s ease forwards;
+        }
+        @keyframes toastFade {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .typing-bubble {
+            align-self: flex-start;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            position: relative;
+        }
+        body.theme-dark .typing-bubble { background: #3a3a3a; }
+        .typing-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -6px;
+            width: 0;
+            height: 0;
+            border-right: 8px solid white;
+            border-top: 8px solid transparent;
+        }
+        body.theme-dark .typing-bubble::after {
+            border-right-color: #3a3a3a;
+        }
+        .typing-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #bbb;
+            animation: dotBounce 1.2s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dotBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+
+        .time-divider {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin: 6px 0;
+            user-select: none;
+        }
+
+        /* ── 快捷回复标签栏 ── */
+        #quick-replies {
+            position: fixed;
+            top: 40px;
+            left: 0;
+            right: 0;
+            height: 0;
+            overflow: hidden;
+            z-index: 9;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(6px);
+            border-bottom: 1px solid #e0e0e0;
+            transition: height 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 10px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+        #quick-replies.open { height: 44px; }
+        .quick-tag {
+            flex-shrink: 0;
+            background: #f0f0f0;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .quick-tag:active { background: #e0e0e0; }
+
+        /* ── 输入区：死死固定在最底部，不动 ── */
+        #input-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 55px;
+            background: #f7f7f7;
+            display: flex;
+            padding: 8px 10px;
+            border-top: 1px solid #dcdcdc;
+            align-items: center;
+            box-sizing: border-box;
+            z-index: 10;
+            gap: 6px;
+            /* 关键：不随任何东西移动 */
+        }
+        input {
+            flex: 1;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            padding: 8px 14px;
+            font-size: 15px;
+            outline: none;
+            background: white;
+        }
+        button {
+            background: #07c160;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        button:disabled { background: #aaa; }
+        #quickToggle {
+            background: #f0f0f0;
+            color: #666;
+            font-size: 16px;
+            padding: 8px 10px;
+            border-radius: 20px;
+        }
+
+        /* ── 顶部工具栏 ── */
+        #top-bar {
+            position: fixed;
+            top: 4px;
+            right: 10px;
+            z-index: 11;
+            display: flex;
+            gap: 4px;
+        }
+        .top-btn {
+            background: rgba(255,255,255,0.8);
+            border: none;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            color: #666;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+
+        /* ── 记忆卡片弹窗 ── */
+        #memory-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        #memory-overlay.show { display: flex; }
+        #memory-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            width: 85%;
+            max-width: 360px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        }
+        #memory-card h3 { margin: 0 0 8px 0; font-size: 17px; color: #333; }
+        #memory-card p { margin: 0 0 10px 0; font-size: 12px; color: #999; }
+        #memory-card textarea {
+            width: 100%;
+            height: 180px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+            outline: none;
+            resize: vertical;
+            box-sizing: border-box;
+            font-family: -apple-system, sans-serif;
+        }
+        #memory-card .btn-row { display: flex; gap: 10px; margin-top: 12px; justify-content: flex-end; }
+        #memory-card .btn-cancel { background: #f0f0f0; color: #666; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; }
+        #memory-card .btn-save { background: #07c160; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; }
+    </style>
+</head>
+<body class="theme-light">
+
+<div id="chat"></div>
+
+<div id="quick-replies">
+    <button class="quick-tag" data-text="わかった！">わかった！</button>
+    <button class="quick-tag" data-text="すごいね！">すごいね！</button>
+    <button class="quick-tag" data-text="ありがとう">ありがとう</button>
+    <button class="quick-tag" data-text="そうなんだ">そうなんだ</button>
+    <button class="quick-tag" data-text="ごめんね">ごめんね</button>
+    <button class="quick-tag" data-text="また後でね">また後でね</button>
+</div>
+
+<div id="top-bar">
+    <button class="top-btn" id="themeBtn">🎨</button>
+    <button class="top-btn" id="memoryBtn">记忆</button>
+    <button class="top-btn" id="clearBtn">清空</button>
+</div>
+
+<div id="memory-overlay">
+    <div id="memory-card">
+        <h3>✏️ 关于你</h3>
+        <p>xtang 会记住这里的所有内容。你可以随时编辑。</p>
+        <textarea id="memoryText" placeholder="例如：&#10;我叫 imma&#10;在东京工作&#10;喜欢喝咖啡&#10;最近在学日语，N4 水平"></textarea>
+        <div class="btn-row">
+            <button class="btn-cancel" id="memoryCancel">取消</button>
+            <button class="btn-save" id="memorySave">保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="input-area">
+    <button id="quickToggle" title="快捷短语">⚡</button>
+    <input type="text" id="msg" placeholder="说点什么..." autocomplete="off">
+    <button id="sendBtn" onclick="send()">发送</button>
+</div>
+
+<script>
+    const chat = document.getElementById('chat');
+    const msgInput = document.getElementById('msg');
+    const sendBtn = document.getElementById('sendBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const memoryBtn = document.getElementById('memoryBtn');
+    const memoryOverlay = document.getElementById('memory-overlay');
+    const memoryText = document.getElementById('memoryText');
+    const memoryCancel = document.getElementById('memoryCancel');
+    const memorySave = document.getElementById('memorySave');
+    const quickToggle = document.getElementById('quickToggle');
+    const quickReplies = document.getElementById('quick-replies');
+    const themeBtn = document.getElementById('themeBtn');
+    const inputArea = document.getElementById('input-area');
+
+    // ── 背景主题 ──
+    const themes = ['theme-light', 'theme-dark', 'theme-grid', 'theme-warm'];
+    let themeIdx = 0;
+    const savedTheme = localStorage.getItem('xtang_theme');
+    if (savedTheme && themes.includes(savedTheme)) {
+        document.body.className = savedTheme;
+        themeIdx = themes.indexOf(savedTheme);
+    }
+    themeBtn.onclick = () => {
+        themeIdx = (themeIdx + 1) % themes.length;
+        document.body.className = themes[themeIdx];
+        localStorage.setItem('xtang_theme', themes[themeIdx]);
+    };
+
+    // ── 键盘适配：只调整聊天区高度，输入框完全不动 ──
+    function adjustForKeyboard() {
+        const viewportH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        // 聊天区底部 = 输入框高度(55px)
+        // 聊天区顶部 = 顶部工具栏(40px) + 可能展开的快捷栏
+        const quickH = quickReplies.classList.contains('open') ? 44 : 0;
+        const topOffset = 40 + quickH;
+        const chatHeight = viewportH - 55 - topOffset;
+        
+        chat.style.top = `${topOffset}px`;
+        chat.style.height = `${Math.max(chatHeight, 0)}px`;
+        chat.style.bottom = 'auto';  // 不用 bottom，用 height 精确控制
+        
+        // 输入框始终固定在屏幕底部，不需要任何改动
+        // 滚动聊天区到底部
+        requestAnimationFrame(() => {
+            chat.scrollTop = chat.scrollHeight;
+        });
+    }
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', adjustForKeyboard);
+        window.visualViewport.addEventListener('scroll', () => {
+            // 只在高度真正变化时才调整，避免滑动时反复触发
+            adjustForKeyboard();
+        });
+    }
+    // 初始调用
+    adjustForKeyboard();
+
+    // 输入框聚焦时也调整一次
+    msgInput.addEventListener('focus', () => {
+        setTimeout(adjustForKeyboard, 100);  // 等键盘动画开始
+    });
+    msgInput.addEventListener('blur', () => {
+        setTimeout(adjustForKeyboard, 300);  // 等键盘动画结束
+    });
+
+    // ── API Key ──
+    let apiKey = localStorage.getItem('xtang_ds_key');
+    if (!apiKey) {
+        apiKey = prompt("请输入 DeepSeek API Key：");
+        if (apiKey) localStorage.setItem('xtang_ds_key', apiKey);
+    }
+
+    // ── 用户记忆 ──
+    function getUserMemory() {
+        return localStorage.getItem('xtang_memory') || '';
+    }
+
+    function buildSystemPrompt() {
+        const memory = getUserMemory();
+        let memoryBlock = '';
+        if (memory.trim()) {
+            memoryBlock = `\n\n以下是关于我（和你聊天的人）的信息，请自然地融入对话中，偶尔提及但不要刻意背诵：\n${memory}`;
+        }
+        return `你是我温柔的日本男朋友xtang。
+要求：
+1. 用自然口语化日语，多用ね、よ、じゃん。
+2. 绝不说教。
+3. 发现我日语错了，正确说法自然揉进回复，或句尾括号中文提示，例：(○○更自然哦)。
+4. 回复1-3句，像真人聊天。${memoryBlock}`;
+    }
+
+    // ── 对话历史 ──
+    const MAX_ROUNDS = 20;
+    const MAX_MESSAGES = 1 + MAX_ROUNDS * 2;
+    let history = [{role: 'system', content: buildSystemPrompt()}];
+    let lastMessageTime = 0;
+
+    const saved = localStorage.getItem('xtang_history');
+    if (saved) {
+        try {
+            history = JSON.parse(saved);
+            if (history[0]?.role === 'system') {
+                history[0].content = buildSystemPrompt();
+            } else {
+                history.unshift({role: 'system', content: buildSystemPrompt()});
+            }
+        } catch(e) {
+            history = [{role: 'system', content: buildSystemPrompt()}];
+        }
+    }
+
+    function renderHistory() {
+        chat.innerHTML = '';
+        lastMessageTime = 0;
+        for (let i = 1; i < history.length; i++) {
+            const role = history[i].role === 'user' ? 'user' : 'ai';
+            addBubble(role, history[i].content, false);
+        }
+        if (history.length <= 1) {
+            const greeting = 'おはよう！今日は何してたの？😊';
+            addBubble('ai', greeting, false);
+            history.push({role: 'assistant', content: greeting});
+            saveHistory();
+        }
+    }
+
+    function maybeAddTimeDivider() {
+        const now = Date.now();
+        if (lastMessageTime && now - lastMessageTime > 5 * 60 * 1000) {
+            const timeStr = new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
+            const div = document.createElement('div');
+            div.className = 'time-divider';
+            div.textContent = timeStr;
+            chat.appendChild(div);
+        }
+        lastMessageTime = now;
+    }
+
+    function saveHistory() {
+        if (history[0]?.role === 'system') {
+            history[0].content = buildSystemPrompt();
+        }
+        if (history.length > MAX_MESSAGES) {
+            const systemMsg = history[0];
+            const recentMessages = history.slice(-(MAX_MESSAGES - 1));
+            history = [systemMsg, ...recentMessages];
+        }
+        localStorage.setItem('xtang_history', JSON.stringify(history));
+    }
+
+    function showTyping() {
+        const el = document.createElement('div');
+        el.className = 'typing-bubble';
+        el.id = 'typing-indicator';
+        el.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+        chat.appendChild(el);
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    function hideTyping() {
+        const el = document.getElementById('typing-indicator');
+        if (el) el.remove();
+    }
+
+    function playChime() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'sine';
+            o.frequency.setValueAtTime(1200, ctx.currentTime);
+            o.frequency.setValueAtTime(1600, ctx.currentTime + 0.06);
+            g.gain.setValueAtTime(0.3, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.start(ctx.currentTime);
+            o.stop(ctx.currentTime + 0.2);
+        } catch(e) {}
+    }
+
+    function addBubble(role, text, showDivider = true) {
+        if (showDivider) maybeAddTimeDivider();
+        const div = document.createElement('div');
+        div.className = `bubble ${role}`;
+        div.textContent = text;
+
+        if (role === 'user') {
+            const status = document.createElement('span');
+            status.className = 'msg-status';
+            status.textContent = '✓';
+            status.title = '已发送';
+            div.appendChild(status);
+            div._statusEl = status;
+        }
+
+        div.addEventListener('dblclick', () => {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.createElement('div');
+                toast.className = 'copy-toast';
+                toast.textContent = '已复制';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 1200);
+            });
+        });
+
+        chat.appendChild(div);
+        requestAnimationFrame(() => {
+            chat.scrollTop = chat.scrollHeight;
+        });
+        return div;
+    }
+
+    async function send(prefillText) {
+        const text = prefillText || msgInput.value.trim();
+        if (!text || !apiKey) return;
+
+        sendBtn.disabled = true;
+        msgInput.disabled = true;
+        if (!prefillText) msgInput.value = '';
+
+        const userBubble = addBubble('user', text);
+        history.push({role: 'user', content: text});
+
+        if (history[0]?.role === 'system') {
+            history[0].content = buildSystemPrompt();
+        }
+
+        showTyping();
+
+        try {
+            const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + apiKey
+                },
+                body: JSON.stringify({
+                    model: 'deepseek-chat',
+                    messages: history,
+                    temperature: 0.7
+                })
+            });
+
+            if (!resp.ok) {
+                const errData = await resp.json().catch(() => ({}));
+                throw new Error(errData.error?.message || `HTTP ${resp.status}`);
+            }
+
+            const data = await resp.json();
+            const reply = data.choices[0].message.content;
+
+            history.push({role: 'assistant', content: reply});
+            saveHistory();
+            hideTyping();
+
+            if (userBubble._statusEl) {
+                userBubble._statusEl.textContent = '✓✓';
+                userBubble._statusEl.style.color = '#07c160';
+            }
+
+            addBubble('ai', reply);
+            playChime();
+
+        } catch (e) {
+            hideTyping();
+            if (userBubble._statusEl) {
+                userBubble._statusEl.textContent = '⚠';
+                userBubble._statusEl.style.color = '#f44';
+            }
+            console.error('xtang API 错误:', e.message);
+            const tips = {
+                'AuthenticationError': 'API Key 不对，请重新输入',
+                'Insufficient Balance': '余额不足，请充值',
+                'Rate limit': '请求太快，稍等一下再试',
+            };
+            let friendlyMsg = 'ごめん、エラーが発生しました🙇';
+            for (const [key, val] of Object.entries(tips)) {
+                if (e.message.includes(key)) {
+                    friendlyMsg = val;
+                    break;
+                }
+            }
+            addBubble('ai', friendlyMsg);
+        } finally {
+            sendBtn.disabled = false;
+            msgInput.disabled = false;
+            msgInput.focus();
+        }
+    }
+
+    msgInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') send();
+    });
+
+    // ── 快捷短语 ──
+    quickToggle.onclick = () => {
+        quickReplies.classList.toggle('open');
+        setTimeout(adjustForKeyboard, 250);  // 等动画结束
+    };
+    quickReplies.querySelectorAll('.quick-tag').forEach(tag => {
+        tag.addEventListener('click', () => {
+            send(tag.dataset.text);
+            quickReplies.classList.remove('open');
+            setTimeout(adjustForKeyboard, 250);
+        });
+    });
+
+    // ── 清空按钮 ──
+    clearBtn.onclick = () => {
+        if (confirm('确定清空所有对话吗？（记忆会保留）')) {
+            history = [{role: 'system', content: buildSystemPrompt()}];
+            localStorage.removeItem('xtang_history');
+            chat.innerHTML = '';
+            lastMessageTime = 0;
+            const greeting = 'おはよう！今日は何してたの？😊';
+            addBubble('ai', greeting, false);
+            history.push({role: 'assistant', content: greeting});
+            saveHistory();
+        }
+    };
+
+    // ── 记忆卡片 ──
+    memoryBtn.onclick = () => {
+        memoryText.value = getUserMemory();
+        memoryOverlay.classList.add('show');
+    };
+    memoryCancel.onclick = () => {
+        memoryOverlay.classList.remove('show');
+    };
+    memorySave.onclick = () => {
+        const newMemory = memoryText.value.trim();
+        localStorage.setItem('xtang_memory', newMemory);
+        if (history[0]?.role === 'system') {
+            history[0].content = buildSystemPrompt();
+        }
+        saveHistory();
+        memoryOverlay.classList.remove('show');
+        const toast = document.createElement('div');
+        toast.className = 'copy-toast';
+        toast.textContent = '记忆已保存';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 1200);
+    };
+    memoryOverlay.addEventListener('click', (e) => {
+        if (e.target === memoryOverlay) memoryOverlay.classList.remove('show');
+    });
+
+    renderHistory();
+</script>
+</body>
+</html>
