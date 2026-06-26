@@ -37,16 +37,16 @@
             padding: 10px 14px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             -webkit-overflow-scrolling: touch;
         }
 
         .bubble {
             max-width: 78%;
-            padding: 10px 14px;
-            border-radius: 18px;
-            font-size: 15px;
-            line-height: 1.4;
+            padding: 8px 12px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.35;
             word-wrap: break-word;
             position: relative;
             cursor: default;
@@ -64,8 +64,8 @@
             left: -6px;
             width: 0;
             height: 0;
-            border-right: 8px solid white;
-            border-top: 8px solid transparent;
+            border-right: 7px solid white;
+            border-top: 7px solid transparent;
         }
         body.theme-dark .ai::after { border-right-color: #3a3a3a; }
 
@@ -81,14 +81,14 @@
             right: -6px;
             width: 0;
             height: 0;
-            border-left: 8px solid #95ec69;
-            border-top: 8px solid transparent;
+            border-left: 7px solid #95ec69;
+            border-top: 7px solid transparent;
         }
         .user .msg-status {
             position: absolute;
-            bottom: 4px;
-            right: -18px;
-            font-size: 11px;
+            bottom: 3px;
+            right: -16px;
+            font-size: 10px;
             color: #aaa;
         }
 
@@ -100,9 +100,9 @@
             transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.7);
             color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 12px;
             z-index: 999;
             pointer-events: none;
             animation: toastFade 1.2s ease forwards;
@@ -117,12 +117,12 @@
         .typing-bubble {
             align-self: flex-start;
             background: white;
-            padding: 12px 16px;
-            border-radius: 18px;
+            padding: 10px 14px;
+            border-radius: 16px;
             border-bottom-left-radius: 4px;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             position: relative;
         }
         body.theme-dark .typing-bubble { background: #3a3a3a; }
@@ -133,13 +133,13 @@
             left: -6px;
             width: 0;
             height: 0;
-            border-right: 8px solid white;
-            border-top: 8px solid transparent;
+            border-right: 7px solid white;
+            border-top: 7px solid transparent;
         }
         body.theme-dark .typing-bubble::after { border-right-color: #3a3a3a; }
         .typing-dot {
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background: #bbb;
             animation: dotBounce 1.2s infinite ease-in-out;
@@ -149,14 +149,14 @@
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes dotBounce {
             0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-8px); }
+            30% { transform: translateY(-6px); }
         }
 
         .time-divider {
             text-align: center;
-            font-size: 12px;
+            font-size: 11px;
             color: #999;
-            margin: 6px 0;
+            margin: 4px 0;
             user-select: none;
         }
 
@@ -174,19 +174,19 @@
             transition: height 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             padding: 0 10px;
             flex-wrap: nowrap;
             overflow-x: auto;
         }
-        #quick-replies.open { height: 44px; }
+        #quick-replies.open { height: 40px; }
         .quick-tag {
             flex-shrink: 0;
             background: #f0f0f0;
             border: none;
-            padding: 6px 12px;
-            border-radius: 16px;
-            font-size: 13px;
+            padding: 5px 10px;
+            border-radius: 14px;
+            font-size: 12px;
             color: #333;
             cursor: pointer;
             white-space: nowrap;
@@ -198,10 +198,10 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 55px;
+            height: 50px;
             background: #f7f7f7;
             display: flex;
-            padding: 8px 10px;
+            padding: 6px 10px;
             border-top: 1px solid #dcdcdc;
             align-items: center;
             z-index: 10;
@@ -210,9 +210,9 @@
         input {
             flex: 1;
             border: 1px solid #ccc;
-            border-radius: 20px;
-            padding: 8px 14px;
-            font-size: 15px;
+            border-radius: 16px;
+            padding: 6px 12px;
+            font-size: 14px;
             outline: none;
             background: white;
         }
@@ -220,9 +220,9 @@
             background: #07c160;
             color: white;
             border: none;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 13px;
             white-space: nowrap;
             cursor: pointer;
         }
@@ -230,9 +230,9 @@
         #quickToggle {
             background: #f0f0f0;
             color: #666;
-            font-size: 16px;
-            padding: 8px 10px;
-            border-radius: 20px;
+            font-size: 14px;
+            padding: 6px 8px;
+            border-radius: 16px;
         }
 
         #top-bar {
@@ -246,9 +246,9 @@
         .top-btn {
             background: rgba(255,255,255,0.8);
             border: none;
-            padding: 4px 8px;
-            border-radius: 10px;
-            font-size: 11px;
+            padding: 3px 7px;
+            border-radius: 8px;
+            font-size: 10px;
             color: #666;
             cursor: pointer;
             backdrop-filter: blur(4px);
@@ -370,18 +370,17 @@
         const memory = getUserMemory();
         let memoryBlock = '';
         if (memory.trim()) {
-            memoryBlock = `\n\n关于我的信息（自然融入对话，不要刻意背诵）：\n${memory}`;
+            memoryBlock = `\n\n关于我的信息（自然融入对话）：\n${memory}`;
         }
         return `你是我的日本男友xtang。
-铁则：
+规则：
 1. 日语口语，带ね、よ、じゃん。
 2. 绝对不说教。
 3. 纠错揉进回复，或括号中文小提示。
-4. 【回复长度严格控制】参考例句：「ううん、君の名前はxtang」。
-   每条回复必须像这句一样短，就一句话的长度。绝对禁止超过两句话。
-   如果你想说的话确实需要两句，就拆成两条独立回复，每次只发一条，等下次对话再发第二条。
-   不能在一个气泡里塞两句话，更不能写长段落。
-5. 像LINE聊天一样轻松简短。${memoryBlock}`;
+4. 【一次只能说一句话】你的每一条回复只能包含一句话。参考长度：「ううん、君の名前はxtang」。
+   绝对不能把两句话放在同一条消息里。如果确实需要表达两个意思，分成两次回复，每次各一句话。
+   禁止长段落、禁止展开解释、禁止列举。
+5. 像LINE一样轻松简短。${memoryBlock}`;
     }
 
     const MAX_ROUNDS = 20;
@@ -524,9 +523,8 @@
             const data = await resp.json();
             const reply = data.choices[0].message.content;
 
-            // 把 AI 回复按句号或换行拆成独立气泡
             const sentences = reply.split(/[。\n]+/).filter(s => s.trim());
-            
+
             history.push({role: 'assistant', content: reply});
             saveHistory();
 
@@ -537,12 +535,11 @@
                     userBubble._statusEl.textContent = '✓✓';
                     userBubble._statusEl.style.color = '#07c160';
                 }
-                // 逐条发送，每条之间有短暂延迟
                 sentences.forEach((sentence, i) => {
                     setTimeout(() => {
                         addBubble('ai', sentence.trim());
                         if (i === sentences.length - 1) playChime();
-                    }, i * 600);
+                    }, i * 700);
                 });
             }, delay);
 
