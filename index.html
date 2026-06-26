@@ -27,12 +27,52 @@
         }
         body.theme-warm { background: #fdf6f0; }
 
-        #chat {
+        /* ── 顶部标题栏 ── */
+        #header {
             position: fixed;
-            top: 40px;
+            top: 0;
             left: 0;
             right: 0;
-            bottom: 55px;
+            height: 44px;
+            background: #f7f7f7;
+            border-bottom: 1px solid #dcdcdc;
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            z-index: 11;
+            gap: 10px;
+        }
+        #header .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        #header .name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+        #header .persona-badge {
+            font-size: 11px;
+            color: #888;
+            background: #e8e8e8;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 4px;
+        }
+
+        #chat {
+            position: fixed;
+            top: 44px;
+            left: 0;
+            right: 0;
+            bottom: 50px;
             overflow-y: auto;
             padding: 10px 14px;
             display: flex;
@@ -162,7 +202,7 @@
 
         #quick-replies {
             position: fixed;
-            top: 40px;
+            top: 44px;
             left: 0;
             right: 0;
             height: 0;
@@ -237,7 +277,7 @@
 
         #top-bar {
             position: fixed;
-            top: 4px;
+            top: 48px;
             right: 10px;
             z-index: 11;
             display: flex;
@@ -254,7 +294,7 @@
             backdrop-filter: blur(4px);
         }
 
-        #memory-overlay {
+        #memory-overlay, #persona-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -263,8 +303,8 @@
             justify-content: center;
             align-items: center;
         }
-        #memory-overlay.show { display: flex; }
-        #memory-card {
+        #memory-overlay.show, #persona-overlay.show { display: flex; }
+        #memory-card, #persona-card {
             background: white;
             border-radius: 16px;
             padding: 20px;
@@ -272,9 +312,9 @@
             max-width: 360px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.18);
         }
-        #memory-card h3 { margin: 0 0 8px 0; font-size: 17px; color: #333; }
-        #memory-card p { margin: 0 0 10px 0; font-size: 12px; color: #999; }
-        #memory-card textarea {
+        #memory-card h3, #persona-card h3 { margin: 0 0 8px 0; font-size: 17px; color: #333; }
+        #memory-card p, #persona-card p { margin: 0 0 10px 0; font-size: 12px; color: #999; }
+        #memory-card textarea, #persona-card textarea {
             width: 100%;
             height: 180px;
             border: 1px solid #ddd;
@@ -287,12 +327,19 @@
             box-sizing: border-box;
             font-family: -apple-system, sans-serif;
         }
-        #memory-card .btn-row { display: flex; gap: 10px; margin-top: 12px; justify-content: flex-end; }
-        #memory-card .btn-cancel { background: #f0f0f0; color: #666; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; }
-        #memory-card .btn-save { background: #07c160; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; }
+        #memory-card .btn-row, #persona-card .btn-row { display: flex; gap: 10px; margin-top: 12px; justify-content: flex-end; }
+        #memory-card .btn-cancel, #persona-card .btn-cancel { background: #f0f0f0; color: #666; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; }
+        #memory-card .btn-save, #persona-card .btn-save { background: #07c160; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; }
     </style>
 </head>
 <body class="theme-light">
+
+<!-- 顶部标题栏 -->
+<div id="header">
+    <div class="avatar">🐶</div>
+    <span class="name">xtang</span>
+    <span class="persona-badge" id="personaBadge">年下彼氏</span>
+</div>
 
 <div id="chat"></div>
 
@@ -306,19 +353,34 @@
 </div>
 
 <div id="top-bar">
+    <button class="top-btn" id="personaBtn">人设</button>
     <button class="top-btn" id="themeBtn">🎨</button>
     <button class="top-btn" id="memoryBtn">记忆</button>
     <button class="top-btn" id="clearBtn">清空</button>
 </div>
 
+<!-- 记忆卡片 -->
 <div id="memory-overlay">
     <div id="memory-card">
         <h3>✏️ 关于你</h3>
-        <p>xtang 会记住这里的所有内容。你可以随时编辑。</p>
+        <p>xtang 会记住这里的所有内容。</p>
         <textarea id="memoryText" placeholder="例如：&#10;我叫 imma&#10;在东京工作&#10;喜欢喝咖啡&#10;最近在学日语，N4 水平"></textarea>
         <div class="btn-row">
             <button class="btn-cancel" id="memoryCancel">取消</button>
             <button class="btn-save" id="memorySave">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 人设卡片 -->
+<div id="persona-overlay">
+    <div id="persona-card">
+        <h3>🎭 xtang 的人设</h3>
+        <p>编辑 xtang 的性格、说话风格和背景故事。</p>
+        <textarea id="personaText" placeholder="例如：&#10;22岁的大学生，性格开朗温柔&#10;喜欢叫我姐姐&#10;有点天然呆但很真诚&#10;在东京读设计专业&#10;喜欢摄影和咖啡"></textarea>
+        <div class="btn-row">
+            <button class="btn-cancel" id="personaCancel">取消</button>
+            <button class="btn-save" id="personaSave">保存</button>
         </div>
     </div>
 </div>
@@ -335,13 +397,28 @@
     const sendBtn = document.getElementById('sendBtn');
     const clearBtn = document.getElementById('clearBtn');
     const memoryBtn = document.getElementById('memoryBtn');
+    const personaBtn = document.getElementById('personaBtn');
     const memoryOverlay = document.getElementById('memory-overlay');
     const memoryText = document.getElementById('memoryText');
     const memoryCancel = document.getElementById('memoryCancel');
     const memorySave = document.getElementById('memorySave');
+    const personaOverlay = document.getElementById('persona-overlay');
+    const personaText = document.getElementById('personaText');
+    const personaCancel = document.getElementById('personaCancel');
+    const personaSave = document.getElementById('personaSave');
+    const personaBadge = document.getElementById('personaBadge');
     const quickToggle = document.getElementById('quickToggle');
     const quickReplies = document.getElementById('quick-replies');
     const themeBtn = document.getElementById('themeBtn');
+
+    // ── 默认人设 ──
+    const defaultPersona = `22岁的大学生，性格开朗温柔
+喜欢叫对方"姐姐"
+有点天然呆但很真诚
+在东京读设计专业
+喜欢摄影和咖啡
+偶尔会撒娇，但该认真的时候很可靠
+说话语气轻松活泼，带一点年轻人的慵懒感`;
 
     const themes = ['theme-light', 'theme-dark', 'theme-grid', 'theme-warm'];
     let themeIdx = 0;
@@ -366,20 +443,38 @@
         return localStorage.getItem('xtang_memory') || '';
     }
 
+    function getUserPersona() {
+        return localStorage.getItem('xtang_persona') || defaultPersona;
+    }
+
+    // 更新顶部人设标签
+    function updatePersonaBadge() {
+        const persona = getUserPersona();
+        const firstLine = persona.split('\n')[0].trim();
+        if (firstLine.length <= 10) {
+            personaBadge.textContent = firstLine;
+        } else {
+            personaBadge.textContent = firstLine.substring(0, 8) + '…';
+        }
+    }
+
     function buildSystemPrompt() {
+        const persona = getUserPersona();
         const memory = getUserMemory();
         let memoryBlock = '';
         if (memory.trim()) {
-            memoryBlock = `\n\n关于我的信息（自然融入对话）：\n${memory}`;
+            memoryBlock = `\n\n关于正在和你聊天的人（自然融入对话，不要刻意背诵）：\n${memory}`;
         }
-        return `你是我的日本男友xtang。
-规则：
+        return `你是xtang，以下是你的完整人设。请严格按照人设扮演，不要跳出角色。
+
+【你的人设】
+${persona}
+
+【对话规则】
 1. 日语口语，带ね、よ、じゃん。
 2. 绝对不说教。
 3. 纠错揉进回复，或括号中文小提示。
-4. 【一次只能说一句话】你的每一条回复只能包含一句话。参考长度：「ううん、君の名前はxtang」。
-   绝对不能把两句话放在同一条消息里。如果确实需要表达两个意思，分成两次回复，每次各一句话。
-   禁止长段落、禁止展开解释、禁止列举。
+4. 【一次只能说一句话】每一条回复只能包含一句话。参考长度：「ううん、君の名前はxtang」。禁止把两句话放在同一条消息里。禁止长段落、禁止展开解释。
 5. 像LINE一样轻松简短。${memoryBlock}`;
     }
 
@@ -566,7 +661,7 @@
     });
 
     clearBtn.onclick = () => {
-        if (confirm('确定清空所有对话吗？（记忆会保留）')) {
+        if (confirm('确定清空所有对话吗？（记忆和人设会保留）')) {
             history = [{role: 'system', content: buildSystemPrompt()}];
             localStorage.removeItem('xtang_history');
             chat.innerHTML = '';
@@ -578,6 +673,7 @@
         }
     };
 
+    // ── 记忆卡片 ──
     memoryBtn.onclick = () => { memoryText.value = getUserMemory(); memoryOverlay.classList.add('show'); };
     memoryCancel.onclick = () => memoryOverlay.classList.remove('show');
     memorySave.onclick = () => {
@@ -585,14 +681,26 @@
         if (history[0]?.role === 'system') history[0].content = buildSystemPrompt();
         saveHistory();
         memoryOverlay.classList.remove('show');
-        const toast = document.createElement('div');
-        toast.className = 'copy-toast';
-        toast.textContent = '记忆已保存';
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 1200);
+        const toast = document.createElement('div'); toast.className = 'copy-toast'; toast.textContent = '记忆已保存';
+        document.body.appendChild(toast); setTimeout(() => toast.remove(), 1200);
     };
     memoryOverlay.addEventListener('click', (e) => { if (e.target === memoryOverlay) memoryOverlay.classList.remove('show'); });
 
+    // ── 人设卡片 ──
+    personaBtn.onclick = () => { personaText.value = getUserPersona(); personaOverlay.classList.add('show'); };
+    personaCancel.onclick = () => personaOverlay.classList.remove('show');
+    personaSave.onclick = () => {
+        localStorage.setItem('xtang_persona', personaText.value.trim());
+        updatePersonaBadge();
+        if (history[0]?.role === 'system') history[0].content = buildSystemPrompt();
+        saveHistory();
+        personaOverlay.classList.remove('show');
+        const toast = document.createElement('div'); toast.className = 'copy-toast'; toast.textContent = '人设已更新';
+        document.body.appendChild(toast); setTimeout(() => toast.remove(), 1200);
+    };
+    personaOverlay.addEventListener('click', (e) => { if (e.target === personaOverlay) personaOverlay.classList.remove('show'); });
+
+    updatePersonaBadge();
     renderHistory();
 </script>
 </body>
