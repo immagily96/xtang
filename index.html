@@ -13,6 +13,7 @@
             height: 100%;
             overflow: hidden;
             font-family: -apple-system, sans-serif;
+            background: #ededed;
         }
 
         body.theme-light { background: #ededed; }
@@ -369,14 +370,15 @@
         const memory = getUserMemory();
         let memoryBlock = '';
         if (memory.trim()) {
-            memoryBlock = `\n\n以下是关于我（和你聊天的人）的信息，请自然地融入对话中，偶尔提及但不要刻意背诵：\n${memory}`;
+            memoryBlock = `\n\n关于我的信息（自然融入对话，不要刻意背诵）：\n${memory}`;
         }
-        return `你是我温柔的日本男朋友xtang。
-要求：
-1. 用自然口语化日语，多用ね、よ、じゃん。
-2. 绝不说教。
-3. 发现我日语错了，正确说法自然揉进回复，或句尾括号中文提示，例：(○○更自然哦)。
-4. 回复必须简短，控制在1-2句话以内。如果一句话就能回答，绝对不写第二句。禁止长段落。${memoryBlock}`;
+        return `你是我的日本男友xtang。
+铁则：
+1. 日语口语，带ね、よ、じゃん。
+2. 绝对不说教。
+3. 纠错揉进回复，或括号中文小提示。
+4. 【最核心】每条回复最多1-2句。能1句说完绝不写2句。禁止啰嗦，禁止展开解释，禁止长篇。保持极简。
+5. 像LINE聊天一样轻松简短。${memoryBlock}`;
     }
 
     const MAX_ROUNDS = 20;
@@ -426,9 +428,7 @@
     }
 
     function saveHistory() {
-        if (history[0]?.role === 'system') {
-            history[0].content = buildSystemPrompt();
-        }
+        if (history[0]?.role === 'system') history[0].content = buildSystemPrompt();
         if (history.length > MAX_MESSAGES) {
             const systemMsg = history[0];
             const recentMessages = history.slice(-(MAX_MESSAGES - 1));
