@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VOICE ARCHIVE</title>
     <style>
         :root { --bg-start: #f0f7f4; --bg-end: #fff5e6; --text: #374151; --accent: #8fb39e; }
@@ -10,52 +9,77 @@
                font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; 
                margin: 0; display: flex; align-items: center; justify-content: center; 
                min-height: 100vh; overflow: hidden; }
-        .container { width: 100%; max-width: 100%; text-align: center; padding: 20px; }
+        
+        .container { width: 100%; max-width: 800px; text-align: center; padding: 20px; }
+        
         #visualizer { width: 180px; height: 180px; margin: 0 auto 60px; border-radius: 50%; 
                       background: var(--accent); opacity: 0.3; cursor: pointer; position: relative; }
         #visualizer.active { animation: wave 2s infinite ease-out; }
         @keyframes wave { 0% { box-shadow: 0 0 0 0 rgba(143, 179, 158, 0.7); } 100% { box-shadow: 0 0 0 50px rgba(143, 179, 158, 0); } }
-        #status { font-size: 1.6rem; line-height: 1.6; margin-bottom: 40px; font-weight: 500; }
+
+        #status { font-size: 1.8rem; line-height: 1.8; margin-bottom: 50px; font-weight: 500; }
+        
         .correction-box { margin-top: 30px; padding: 25px; background: rgba(255,255,255,0.4); 
-                          border-radius: 15px; font-size: 1.2rem; font-style: italic; text-align: left; }
+                          border-radius: 15px; font-size: 1.4rem; font-style: italic; text-align: left; }
+        
         #settings { display: none; margin-top: 40px; padding-top: 20px; text-align: left; }
         #settings.open { display: block; }
         input { background: rgba(255,255,255,0.6); border: 1px solid #ccc; padding: 15px; width: 100%; margin-bottom: 20px; border-radius: 8px; font-size: 1.1rem; }
     </style>
 </head>
 <body>
+
 <div class="container">
     <div id="visualizer"></div>
-    <div id="status">点击圆球开始练习</div>
+    <div id="status">Tap to start conversation</div>
+    
     <div id="settings">
         <input type="password" id="dsKey" placeholder="DeepSeek API Key">
         <input type="password" id="elKey" placeholder="ElevenLabs API Key">
     </div>
 </div>
+
 <script>
     const statusDiv = document.getElementById('status'), visualizer = document.getElementById('visualizer');
-    const systemPrompt = `你现在是日语外教 xtang。规则：1. 严禁复述用户的话。2. correction内容必须全中文。3. 若无误：分享一个简短的中文关联知识点(<15字)。4. 若有误：指出错误并修正(中文<15字)。5. 必须包含一个日语追问。6. JSON格式：{"japanese": "...", "correction": "..." }。`;
+    
+    // 【指令强化：强制要求所有 correction 内容必须为中文】
+    const systemPrompt = `你现在是日语外教 xtang。规则：
+    1. 严禁复述用户的话。
+    2. correction内容必须全部使用中文解释，严禁出现日文。
+    3. 若语法无误：分享一个关联知识点（中文，<15字）。
+    4. 若语法有误：指出错误并修正（中文，<15字）。
+    5. JSON格式：{"japanese": "日语回复", "correction": "中文提示" }。`;
+    
     let history = [{role: 'system', content: systemPrompt}];
+
     visualizer.onclick = () => { 
         if(!localStorage.getItem('ds')) { document.getElementById('settings').classList.toggle('open'); return; }
         const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        rec.lang = 'ja-JP'; rec.start(); visualizer.classList.add('active'); statusDiv.innerText = "Listening..."; 
+        rec.lang = 'ja-JP';
+        rec.start(); 
+        visualizer.classList.add('active'); 
+        statusDiv.innerText = "Listening..."; 
+        
         rec.onresult = async (e) => {
             statusDiv.innerText = "Thinking...";
             const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
-                method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('ds')},
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('ds')},
                 body: JSON.stringify({model: 'deepseek-chat', messages: [...history, {role: 'user', content: e.results[0][0].transcript}]})
             });
             const data = await resp.json();
             const content = JSON.parse(data.choices[0].message.content.match(/\{[\s\S]*\}/)[0]);
+            
             history.push({role: 'assistant', content: JSON.stringify(content)});
             statusDiv.innerHTML = `${content.japanese}<div class="correction-box">💡 提示：<br>${content.correction}</div>`;
             playAudio(content.japanese);
         };
     };
+
     async function playAudio(text) {
         const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/WpkOjWrdwRn56WUVBAVk`, {
-            method: 'POST', headers: {'xi-api-key': localStorage.getItem('el'), 'Content-Type': 'application/json'},
+            method: 'POST',
+            headers: {'xi-api-key': localStorage.getItem('el'), 'Content-Type': 'application/json'},
             body: JSON.stringify({text: text, model_id: "eleven_multilingual_v2"})
         });
         const blob = await resp.blob();
@@ -63,6 +87,7 @@
         audio.play();
         audio.onended = () => visualizer.classList.remove('active');
     }
+    
     document.addEventListener('keydown', (e) => { if(e.key === 'k') document.getElementById('settings').classList.toggle('open'); });
     document.querySelectorAll('input').forEach(i => i.onblur = () => localStorage.setItem(i.id === 'dsKey' ? 'ds' : 'el', i.value));
 </script>
