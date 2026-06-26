@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Haru · 聊天</title>
     <style>
-        body { margin: 0; background-color: #f0f2f5; font-family: -apple-system, sans-serif; height: 100vh; display: flex; flex-direction: column; }
-        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .bubble { max-width: 80%; padding: 12px 16px; border-radius: 18px; font-size: 1rem; line-height: 1.4; position: relative; }
-        .ai { background: white; align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .user { background: #95ec69; align-self: flex-end; border-bottom-right-radius: 4px; color: #000; }
-        .tip { font-size: 0.75rem; color: #888; margin-top: 4px; display: block; font-style: italic; }
-        #input-area { background: #f6f6f6; padding: 10px; display: flex; gap: 10px; border-top: 1px solid #ddd; }
-        input { flex: 1; border: none; padding: 10px; border-radius: 20px; outline: none; }
-        button { background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; }
+        body { margin: 0; background-color: #ededed; font-family: -apple-system, sans-serif; height: 100vh; display: flex; flex-direction: column; }
+        /* 聊天区域 */
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; padding-bottom: 100px; }
+        .bubble { max-width: 80%; padding: 10px 14px; border-radius: 8px; font-size: 16px; line-height: 1.4; position: relative; word-break: break-word; }
+        .ai { background: white; align-self: flex-start; }
+        .user { background: #95ec69; align-self: flex-end; color: #000; }
+        /* 固定底部的输入框 */
+        #input-area { position: fixed; bottom: 0; left: 0; width: 100%; background: #f7f7f7; padding: 10px; box-sizing: border-box; border-top: 1px solid #dcdcdc; display: flex; gap: 8px; z-index: 100; }
+        input { flex: 1; border: 1px solid #ccc; padding: 10px; border-radius: 5px; outline: none; font-size: 16px; background: white; }
+        button { background: #07c160; color: white; border: none; padding: 0 15px; border-radius: 5px; font-size: 16px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -23,43 +24,48 @@
 </div>
 
 <div id="input-area">
-    <input type="text" id="msg" placeholder="输入日语...">
-    <button onclick="send()">发送</button>
+    <input type="text" id="msg" placeholder="" autocomplete="off">
+    <button id="sendBtn" onclick="send()">发送</button>
 </div>
 
 <script>
-    const chat = document.getElementById('chat'), msgInput = document.getElementById('msg');
-    const apiKey = localStorage.getItem('ds') || prompt("请输入 DeepSeek API Key");
-    if(apiKey) localStorage.setItem('ds', apiKey);
+    const chat = document.getElementById('chat'), msgInput = document.getElementById('msg'), sendBtn = document.getElementById('sendBtn');
+    let apiKey = localStorage.getItem('haru_ds_key');
+    if (!apiKey) { apiKey = prompt("请输入 DeepSeek API Key"); if (apiKey) localStorage.setItem('haru_ds_key', apiKey); }
 
-    // 核心：Haru 的恋爱人设 Prompt
-    const systemPrompt = `你是我温柔的日本男朋友Haru。
-    要求：1.用自然、口语化的日语聊天(多用ね,よ)。2.绝对不要像AI老师那样说教。3.如果你发现我日语错了，把正确的说法揉进你的对话里，或者用小括号加中文备注(比如：(其实这样说更地道哦...))。4.保持简短，像聊天一样。`;
+    const systemPrompt = `你是我温柔的日本男朋友Haru。要求：1.用自然、口语化的日语聊天(多用ね,よ)。2.绝不说教。3.发现错直接在对话中揉入正确表达，或用小括号加中文备注(如：(其实这样说更地道...))。4.保持简短。`;
     let history = [{role: 'system', content: systemPrompt}];
 
-    async function send() {
-        const text = msgInput.value;
-        if(!text) return;
-        
-        // UI 显示用户消息
-        chat.innerHTML += `<div class="bubble user">${text}</div>`;
-        msgInput.value = '';
-        chat.scrollTop = chat.scrollHeight;
-
-        history.push({role: 'user', content: text});
-        
-        const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
-            method: 'POST', 
-            headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey},
-            body: JSON.stringify({model: 'deepseek-chat', messages: history})
-        });
-        const res = await resp.json();
-        const reply = res.choices[0].message.content;
-        
-        history.push({role: 'assistant', content: reply});
-        chat.innerHTML += `<div class="bubble ai">${reply}</div>`;
+    function addBubble(role, text) {
+        const div = document.createElement('div');
+        div.className = `bubble ${role}`;
+        div.textContent = text;
+        chat.appendChild(div);
         chat.scrollTop = chat.scrollHeight;
     }
+
+    async function send() {
+        const text = msgInput.value.trim();
+        if (!text || !apiKey) return;
+        addBubble('user', text);
+        msgInput.value = '';
+        history.push({role: 'user', content: text});
+        
+        try {
+            const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey},
+                body: JSON.stringify({model: 'deepseek-chat', messages: history, temperature: 0.7})
+            });
+            const data = await resp.json();
+            const reply = data.choices[0].message.content;
+            history.push({role: 'assistant', content: reply});
+            addBubble('ai', reply);
+        } catch (e) {
+            addBubble('ai', 'ごめん、ちょっとエラーが…🙇');
+        }
+    }
+    msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
 </script>
 </body>
 </html>
