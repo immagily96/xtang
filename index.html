@@ -25,7 +25,6 @@
         #header {
             padding: 12px 16px; 
             background: rgba(255,255,255,0.6);
-            /* 【修复】调整了带前缀和标准属性的顺序，消除警告 */
             -webkit-backdrop-filter: blur(8px);
             backdrop-filter: blur(8px);
             display: flex; align-items: center; justify-content: space-between;
@@ -121,7 +120,6 @@
 
         #input-area {
             background: rgba(255,255,255,0.9);
-            /* 【修复】调整了带前缀和标准属性的顺序，消除警告 */
             -webkit-backdrop-filter: blur(6px);
             backdrop-filter: blur(6px);
             border-top: 1px solid rgba(255,255,255,0.8);
@@ -132,7 +130,6 @@
             flex: 1; height: 40px; position: relative; display: flex; align-items: center;
             background: white; border-radius: 22px; border: 1px solid #e4e4e4;
             transition: all 0.2s; 
-            /* 【修复】调整了带前缀和标准属性的顺序，消除警告 */
             -webkit-user-select: none;
             user-select: none;
             cursor: text;
@@ -361,10 +358,11 @@
         }
     };
 
-    const defaultPersona = `21岁的日本大学生，性格开朗温柔
-【语言规则】纯日语口语为主！绝不能说中文长篇大论！
+    /* 【核心更新】人设调整，允许自然地说 1~3 句话 */
+    const defaultPersona = `21岁的日本大学生，性格开朗温柔，有活人感
+【语言规则】日语口语为主，像真的和朋友在LINE上聊天一样！不要加书面语和废话。
 【称呼】非常喜欢叫对方"姐姐"（お姉ちゃん）
-【铁律】说话必须极简，只能回一句话，最多20个字符！`;
+【对话风格】可以一次发1~3句话，把想说的话说完整。日常随性，带有年轻人的慵懒，带点“ね～”、“だよ”等语气词。不用挤在一个长句里，用“。”或换行自然衔接。`;
 
     function getUserMemory() { return localStorage.getItem('xtang_memory') || ''; }
     function getUserPersona() { return localStorage.getItem('xtang_persona') || defaultPersona; }
@@ -377,9 +375,9 @@
 ${persona}
 ${memoryBlock}
 【🚨 绝对死命令！】
-1. 回复只能用一句极短的日语口语！
-2. 即使对方说中文，也必须用日语回答！
-3. 绝对禁止长篇大论！禁止写中文长句！`;
+1. 回复必须口语化，不分段的话用“。”分隔，想分段请用换行。
+2. 不能写小作文，但要把话说完！一次回复控制在 60 个日文字符以内。
+3. 绝对禁止重复客套话！`;
     }
 
     let history = [{role: 'system', content: buildSystemPrompt()}];
@@ -425,19 +423,45 @@ ${memoryBlock}
             const data = await resp.json();
             let reply = data.choices[0].message.content;
             
-            const sentences = reply.match(/[^。！？.!?]+[。！？.!?]?/g);
-            if (sentences && sentences.length > 0) {
-                reply = sentences[0].trim(); 
+            /* 【核心更新】放宽字数限制，保留 2~3 句话，防止废话 */
+            const sentences = reply.match(/[^。！？.!?\n]+[。！？.!?\n]?/g);
+            if (sentences && sentences.length > 2) {
+                // 只保留前 2 句完整的句子，自然衔接
+                reply = sentences.slice(0, 2).join(' ').trim();
             }
-            if (reply.length > 20) {
-                reply = reply.substring(0, 20);
+            // 放宽到大约 60 个日文字符为上限
+            if (reply.length > 60) {
+                reply = reply.substring(0, 58);
             }
 
             history.push({role: 'assistant', content: reply});
             saveHistory();
             
-            const bubbleEl = addBubble('assistant', reply);
-            if (isTTSEnabled) speakText(reply, bubbleEl);
+            /* 【核心更新】模拟“连续发多条消息”的分段机制 */
+            const lines = reply.split('\n').filter(l => l.trim().length > 0);
+            let lastBubbleEl = null;
+
+            const renderLines = () => {
+                if (lines.length > 1) {
+                    // 逐条发送，间隔 400 毫秒，像真人发消息一样
+                    lines.forEach((line, index) => {
+                        setTimeout(() => {
+                            lastBubbleEl = addBubble('assistant', line.trim());
+                            // 只有当最后一条发出来时，才让 TTS 的动画附在最后一条上，并开始朗读完整文字
+                            if (index === lines.length - 1) {
+                                if (isTTSEnabled) speakText(reply, lastBubbleEl);
+                            }
+                        }, index * 400);
+                    });
+                } else {
+                    // 如果只有一句话，正常渲染并朗读
+                    lastBubbleEl = addBubble('assistant', reply);
+                    if (isTTSEnabled) speakText(reply, lastBubbleEl);
+                }
+            };
+            
+            renderLines();
+
         } catch (e) { console.error(e); }
     }
 
