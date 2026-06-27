@@ -22,54 +22,55 @@
         }
         body.theme-warm { background: #fdf6f0; }
 
-        /* ===== 顶部栏 ===== */
+        /* ===== 顶部栏 (调整高度和间距) ===== */
         #header {
-            position: fixed; top: 0; left: 0; right: 0; height: 58px;
+            position: fixed; top: 0; left: 0; right: 0; height: 56px; /* 稍微降低一点高度 */
             background: #f7f7f7; border-bottom: 1px solid #e5e5e5;
             display: flex; align-items: center; justify-content: center;
             padding: 0 16px; z-index: 11; 
         }
         #settingsBtn {
             position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-            background: transparent; border: none; font-size: 20px; color: #999; 
+            background: transparent; border: none; font-size: 18px; color: #999; 
             padding: 5px; cursor: pointer;
         }
         .header-center {
-            display: flex; align-items: center; gap: 12px;
+            display: flex; align-items: center; gap: 10px;
         }
+        /* 将头像改小，看起来精致很多 */
         .header-avatar {
-            width: 38px; height: 38px; border-radius: 50%;
+            width: 34px; height: 34px; border-radius: 50%;
             background: linear-gradient(135deg, #ff6b6b, #ff4757, #ff6348);
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0; 
         }
         .header-info { display: flex; flex-direction: column; justify-content: center; }
-        .header-name { font-size: 17px; font-weight: 600; color: #111; line-height: 1.2; }
-        .header-status { font-size: 11px; color: #999; line-height: 1.2; margin-top: 2px; transition: opacity 0.2s; }
+        .header-name { font-size: 16px; font-weight: 600; color: #111; line-height: 1.2; }
+        .header-status { font-size: 10px; color: #999; line-height: 1.2; margin-top: 2px; transition: opacity 0.2s; }
 
         /* ===== 下拉菜单 ===== */
         #dropdown-menu {
-            display: none; position: fixed; top: 58px; right: 10px;
+            display: none; position: fixed; top: 56px; right: 10px;
             background: white; border-radius: 12px; z-index: 20;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.12); padding: 4px 0; min-width: 130px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12); padding: 4px 0; min-width: 120px;
         }
         #dropdown-menu.show { display: block; }
         #dropdown-menu .drop-item {
-            padding: 10px 16px; font-size: 13px; color: #333; cursor: pointer;
+            padding: 10px 14px; font-size: 13px; color: #333; cursor: pointer;
             display: flex; align-items: center; gap: 8px;
         }
         #dropdown-menu .drop-item:active { background: #f5f5f5; }
 
-        /* ===== 聊天区 ===== */
+        /* ===== 聊天区 (修正聊天框位置) ===== */
         #chat {
-            position: fixed; top: 58px; left: 0; right: 0; bottom: 64px;
-            overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
+            position: fixed; top: 56px; left: 0; right: 0; bottom: 56px; /* 配合底部高度调整 */
+            overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
             -webkit-overflow-scrolling: touch;
         }
         .bubble {
-            max-width: 78%; padding: 8px 12px; border-radius: 20px; 
-            font-size: 15.5px; /* 固定字号 */
-            line-height: 1.5; word-wrap: break-word; position: relative; cursor: default;
+            max-width: 78%; padding: 8px 12px; border-radius: 18px; 
+            font-size: 15px; /* 这里改小了，确保真实显示大小为舒适中小号 */
+            line-height: 1.4; word-wrap: break-word; position: relative; cursor: default;
         }
         
         .ai {
@@ -78,8 +79,8 @@
         }
         body.theme-dark .ai { background: #3a3a3a; color: #eee; }
         .ai::after {
-            content: ''; position: absolute; bottom: 0; left: -8px; width: 0; height: 0;
-            border-right: 8px solid white; border-top: 8px solid transparent;
+            content: ''; position: absolute; bottom: 0; left: -6px; width: 0; height: 0;
+            border-right: 7px solid white; border-top: 7px solid transparent;
         }
         body.theme-dark .ai::after { border-right-color: #3a3a3a; }
 
@@ -87,34 +88,34 @@
             background: #95ec69; align-self: flex-end; border-bottom-right-radius: 4px; color: #000;
         }
         .user::after {
-            content: ''; position: absolute; bottom: 0; right: -8px; width: 0; height: 0;
-            border-left: 8px solid #95ec69; border-top: 8px solid transparent;
+            content: ''; position: absolute; bottom: 0; right: -6px; width: 0; height: 0;
+            border-left: 7px solid #95ec69; border-top: 7px solid transparent;
         }
         .user .msg-status {
-            position: absolute; bottom: 2px; right: -18px; font-size: 10px; color: #aaa;
+            position: absolute; bottom: 2px; right: -16px; font-size: 10px; color: #aaa;
         }
 
         .typing-bubble {
-            align-self: flex-start; background: #e8e8e8; padding: 10px 14px; border-radius: 20px; border-bottom-left-radius: 4px;
+            align-self: flex-start; background: #e8e8e8; padding: 10px 12px; border-radius: 18px; border-bottom-left-radius: 4px;
             display: flex; align-items: center; gap: 4px;
         }
         body.theme-dark .typing-bubble { background: #3a3a3a; }
-        .typing-bubble::after { content: ''; position: absolute; bottom: 0; left: -8px; border-right: 8px solid #e8e8e8; border-top: 8px solid transparent; }
+        .typing-bubble::after { content: ''; position: absolute; bottom: 0; left: -6px; border-right: 7px solid #e8e8e8; border-top: 7px solid transparent; }
         body.theme-dark .typing-bubble::after { border-right-color: #3a3a3a; }
         .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: #999; animation: dotBounce 1.4s infinite ease-in-out; }
         .typing-dot:nth-child(2) { animation-delay: 0.2s; }
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes dotBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
 
-        /* ===== 底部输入区 ===== */
+        /* ===== 底部输入区 (调整高度和空隙) ===== */
         #input-area {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
-            background: #f7f7f7; display: flex; padding: 8px 12px; border-top: 1px solid #dcdcdc;
-            align-items: center; z-index: 10; gap: 10px;
+            position: fixed; bottom: 0; left: 0; right: 0; height: 56px; /* 调低高度 */
+            background: #f7f7f7; display: flex; padding: 6px 10px; border-top: 1px solid #dcdcdc;
+            align-items: center; z-index: 10; gap: 8px;
         }
         #mainBtnWrapper {
-            flex: 1; height: 40px; position: relative; display: flex; align-items: center; overflow: hidden;
-            background: white; border-radius: 20px; border: 1px solid #e0e0e0;
+            flex: 1; height: 38px; position: relative; display: flex; align-items: center; overflow: hidden;
+            background: white; border-radius: 18px; border: 1px solid #e0e0e0;
             transition: all 0.2s; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
         }
         
@@ -122,11 +123,10 @@
             background: #f0f0f0; border-color: #ccc; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        /* 重新设计语音模式 */
         #voiceBtnArea {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: none; justify-content: center; align-items: center;
-            color: #333; font-size: 15px; font-weight: 600; letter-spacing: 1px;
+            color: #333; font-size: 14px; font-weight: 600; letter-spacing: 1px;
             user-select: none; font-family: -apple-system, sans-serif;
         }
         #voiceBtnArea:active { background: #d0d0d0; }
@@ -134,20 +134,19 @@
         #inputWrapper {
             display: flex; width: 100%; height: 100%; align-items: center;
         }
-        /* 纯文字切换区 */
         .voice-switch-btn {
-            width: 46px; display: flex; justify-content: center; 
+            width: 44px; display: flex; justify-content: center; 
             font-size: 13px; font-weight: 600; color: #07c160; cursor: pointer; flex-shrink: 0;
             letter-spacing: 0.5px; font-family: -apple-system, sans-serif;
         }
         input {
             flex: 1; border: none; padding: 0 4px 0 0; 
-            font-size: 15.5px; outline: none; background: transparent; height: 100%; min-width: 0;
+            font-size: 15px; outline: none; background: transparent; height: 100%; min-width: 0;
         }
         
         #sendBtn {
-            background: #07c160; color: white; border: none; padding: 0 18px; border-radius: 20px;
-            font-size: 15px; font-weight: 500; height: 36px; white-space: nowrap; cursor: pointer; flex-shrink: 0;
+            background: #07c160; color: white; border: none; padding: 0 14px; border-radius: 18px;
+            font-size: 14px; font-weight: 500; height: 34px; white-space: nowrap; cursor: pointer; flex-shrink: 0;
             display: flex; justify-content: center; align-items: center;
         }
         #sendBtn:disabled { background: #aaa; }
@@ -155,7 +154,7 @@
         /* ===== Toast ===== */
         .copy-toast {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.75); color: white; padding: 8px 18px; border-radius: 20px;
+            background: rgba(0,0,0,0.75); color: white; padding: 8px 16px; border-radius: 20px;
             font-size: 13px; z-index: 999; pointer-events: none;
             animation: toastFade 1s ease forwards;
         }
@@ -205,7 +204,6 @@
 <div id="input-area">
     <div id="mainBtnWrapper">
         <div id="inputWrapper">
-            <!-- 没图标了，这是纯文字开关 -->
             <div class="voice-switch-btn" id="switchMicBtn">语音</div>
             <input type="text" id="msg" placeholder="说点什么..." autocomplete="off">
         </div>
@@ -426,7 +424,6 @@ ${memoryBlock}`;
     let isPressingVoice = false;
     let recognition = null;
 
-    // 点击左侧“语音”切换到按住说话模式
     switchMicBtn.addEventListener('click', () => {
         if (isPressingVoice) return;
         mainBtnWrapper.classList.add('voice-mode');
