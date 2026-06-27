@@ -48,10 +48,14 @@
 
         /* 顶部工具栏 */
         .header-tools {
-            display: flex; gap: 16px; font-size: 13px; color: #666;
+            display: flex; gap: 14px; font-size: 13px; color: #666; align-items: center;
         }
         .header-tools span { cursor: pointer; transition: color 0.2s; }
         .header-tools span:hover { color: #07c160; }
+
+        /* ===== 完全统一的 TTS 朗读按钮 ===== */
+        .tts-active { color: #07c160; font-weight: 500; }
+        .tts-inactive { color: #999; }
 
         /* 聊天区域 */
         #chat {
@@ -76,7 +80,7 @@
         }
         /* AI 靠左 */
         .ai-row { justify-content: flex-start; padding: 0 16px 0 0; flex-direction: row; }
-        /* 用户靠右 (修整了方向，现在完全符合右侧逻辑) */
+        /* 用户靠右 */
         .user-row { justify-content: flex-end; padding: 0 0 0 16px; flex-direction: row; }
 
         .msg-avatar {
@@ -91,17 +95,20 @@
             padding: 10px 16px; border-radius: 16px; font-size: 15px; 
             line-height: 1.5; max-width: 75%; position: relative; 
             word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            cursor: default;
         }
         .bubble.ai { 
             background: #ffffff; color: #111; 
             border-bottom-left-radius: 4px;
+            cursor: pointer; /* 提示可以点击 */
         }
+        .bubble.ai:hover { background: #f5f5f5; }
         .bubble.user { 
             background: #95ec69; color: #000; 
             border-bottom-right-radius: 4px;
         }
 
-        /* ===== 底部输入区 (LINE 悬浮卡片风) ===== */
+        /* ===== 底部输入区 ===== */
         #input-area {
             background: rgba(255,255,255,0.9);
             backdrop-filter: blur(6px);
@@ -166,6 +173,8 @@
         <div class="header-tools">
             <span id="btnMemory">记忆</span>
             <span id="btnPersona">人设</span>
+            <!-- 变成完全统一的纯文本样式 -->
+            <span id="btnTTS" class="tts-active">🔊 朗读</span>
             <span id="btnClear">清空</span>
         </div>
     </div>
@@ -215,6 +224,34 @@
 
     let apiKey = localStorage.getItem('xtang_ds_key');
     if (!apiKey) { apiKey = prompt("请输入 DeepSeek API Key："); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
+
+    // ===== 文字转语音 (TTS) 功能及自动播放 =====
+    let isTTSEnabled = true;
+    function speakText(text) {
+        if (!isTTSEnabled) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ja-JP';
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    const ttsBtn = document.getElementById('btnTTS');
+    ttsBtn.onclick = () => {
+        isTTSEnabled = !isTTSEnabled;
+        if (isTTSEnabled) {
+            ttsBtn.classList.remove('tts-inactive');
+            ttsBtn.classList.add('tts-active');
+            ttsBtn.innerText = '🔊 朗读';
+        } else {
+            ttsBtn.classList.remove('tts-active');
+            ttsBtn.classList.add('tts-inactive');
+            ttsBtn.innerText = '🔇 静音';
+            window.speechSynthesis.cancel();
+        }
+    };
+    // =====================================
 
     const defaultPersona = `21岁的日本大学生，性格开朗温柔
 【语言规则】纯日语口语为主！绝不能说中文长篇大论！
@@ -291,6 +328,11 @@ ${memoryBlock}
             history.push({role: 'assistant', content: reply});
             saveHistory();
             addBubble('assistant', reply);
+
+            // ===== 自动播放语音（新增） =====
+            if (isTTSEnabled) {
+                speakText(reply);
+            }
         } catch (e) { console.error(e); }
     }
 
@@ -315,6 +357,18 @@ ${memoryBlock}
             row.innerHTML = `<div class="bubble user">${text}</div><div class="msg-avatar user-avatar"></div>`;
         }
         chat.appendChild(row);
+
+        // ===== 点击气泡手动播放语音（保留） =====
+        if (isAI) {
+            const bubble = row.querySelector('.bubble.ai');
+            bubble.addEventListener('click', () => {
+                if (isTTSEnabled) {
+                    speakText(text);
+                }
+            });
+        }
+        // ======================================
+
         chat.scrollTop = chat.scrollHeight;
     }
 
