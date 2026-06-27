@@ -1,3 +1,6 @@
+给你完整版，两个 Key 都通过网页弹窗输入，不写死在代码里，放心部署 GitHub。
+
+```html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -66,7 +69,6 @@
         #chat::-webkit-scrollbar { width: 4px; }
         #chat::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 4px; }
 
-        /* ===== 时间分割线（间隔>1分钟时出现） ===== */
         .time-divider {
             text-align: center; font-size: 11px; color: #b0b0b0;
             margin: 12px 0 8px 0; user-select: none;
@@ -74,7 +76,6 @@
             display: inline-block; align-self: center;
         }
 
-        /* ===== 消息行 ===== */
         .msg-row {
             display: flex; width: 100%; align-items: flex-end; gap: 6px;
             margin-bottom: 3px;
@@ -84,11 +85,7 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        /* 同一个人连续发消息 → 合并 */
-        .msg-row.grouped {
-            margin-top: -1px;
-            margin-bottom: 1px;
-        }
+        .msg-row.grouped { margin-top: -1px; margin-bottom: 1px; }
         .msg-row.grouped .msg-avatar { visibility: hidden; }
 
         .ai-row { justify-content: flex-start; padding-right: 55px; }
@@ -103,7 +100,6 @@
         .msg-avatar.user-avatar { background: linear-gradient(135deg, #95ec69, #4ade80, #22c55e); }
         .msg-avatar.ai-avatar { background: linear-gradient(135deg, #ff6b6b, #ff4757, #ff6348); }
 
-        /* ===== 气泡 + 时间包装 ===== */
         .bubble-wrap {
             display: flex; flex-direction: column;
             max-width: 75%;
@@ -129,7 +125,6 @@
             border-bottom-right-radius: 6px;
         }
 
-        /* ===== 时间戳（气泡外侧） ===== */
         .bubble-time {
             font-size: 10px; color: #b0b0b0;
             margin-top: 3px; user-select: none;
@@ -138,7 +133,6 @@
         .ai-row .bubble-time { padding-left: 4px; }
         .user-row .bubble-time { padding-right: 4px; }
 
-        /* ===== 可视化条（朗读时） ===== */
         .bubble.ai .visualizer {
             display: none;
             align-items: flex-end; gap: 2px; height: 14px; margin-right: 6px;
@@ -158,7 +152,6 @@
             100%{ transform:scaleY(2); }
         }
 
-        /* ===== 「正在输入...」 ===== */
         #typing-indicator {
             display: none; align-items: flex-end; gap: 6px;
             padding-right: 55px;
@@ -184,7 +177,6 @@
             30%{ transform:translateY(-8px); background:#ff6b6b; }
         }
 
-        /* ===== 双击飘心 ===== */
         .heart-float {
             position: fixed; pointer-events: none; z-index: 999;
             font-size: 28px;
@@ -196,7 +188,6 @@
             100%{ opacity:0; transform:translateY(-140px) scale(0.6) rotate(-20deg); }
         }
 
-        /* ===== 输入区 ===== */
         #input-area {
             background: rgba(255,255,255,0.9);
             -webkit-backdrop-filter: blur(6px);
@@ -315,16 +306,25 @@
     const headerAvatar = document.getElementById('headerAvatar');
     const typingIndicator = document.getElementById('typing-indicator');
     let lastMessageTime = 0;
-    let lastSender = null;        // 用于消息合并
-    let lastTimeEl = null;        // 上一条消息的时间元素（合并时隐藏）
+    let lastSender = null;
+    let lastTimeEl = null;
     let currentAudio = null;
 
-    let apiKey = localStorage.getItem('xtang_ds_key');
-    if (!apiKey) { apiKey = prompt("sk-9f459255c85942d7bea955b6ded52b48："); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
+    // ========== 🔑 两个 Key 都通过网页弹窗输入（不写死） ==========
+    let apiKey = localStorage.getItem('xtang_ds_key') || '';
+    if (!apiKey) {
+        apiKey = prompt("请输入 DeepSeek API Key（sk-...）：") || '';
+        if (apiKey) localStorage.setItem('xtang_ds_key', apiKey);
+    }
+
+    let ELEVENLABS_API_KEY = localStorage.getItem('xtang_elevenlabs_key') || '';
+    let ELEVENLABS_VOICE_ID = "R7KnJI27CitB8T6cCweN";
+    if (!ELEVENLABS_API_KEY) {
+        ELEVENLABS_API_KEY = prompt("请输入 ElevenLabs API Key（留空则使用系统TTS朗读）：") || '';
+        if (ELEVENLABS_API_KEY) localStorage.setItem('xtang_elevenlabs_key', ELEVENLABS_API_KEY);
+    }
 
     let isTTSEnabled = true;
-    const ELEVENLABS_API_KEY = "sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b";
-    const ELEVENLABS_VOICE_ID = "R7KnJI27CitB8T6cCweN";
 
     // ===== 状态栏 =====
     function setStatus(text, isTyping) {
@@ -356,7 +356,7 @@
         setTimeout(() => heart.remove(), 1300);
     }
 
-    // ===== TTS =====
+    // ===== TTS 朗读 =====
     let jpVoice = null;
     function findJapaneseVoice() {
         const voices = window.speechSynthesis.getVoices();
@@ -375,6 +375,7 @@
         const showStart = () => { if (bubbleEl) bubbleEl.classList.add('speaking'); };
         const showEnd = () => { if (bubbleEl) bubbleEl.classList.remove('speaking'); };
 
+        // 没有 ElevenLabs Key → 降级到系统 TTS
         if (!ELEVENLABS_API_KEY || ELEVENLABS_API_KEY.length < 10) {
             const fallback = new SpeechSynthesisUtterance(text);
             if (!jpVoice) findJapaneseVoice();
@@ -435,7 +436,7 @@
     };
 
     // ===== 人设 & 记忆 =====
-    const defaultPersona = `23岁的日本人，性格温柔稳重，有活人感
+    const defaultPersona = `21岁的日本大学生，性格开朗温柔，有活人感
 【语言规则】日语口语为主，像真的和朋友在LINE上聊天一样！不要加书面语和废话。
 【称呼】非常喜欢叫对方"姐姐"（お姉ちゃん）
 【对话风格】可以一次发1~3句话，日常随性，带"ね～"、"だよ"等语气词。用"。"或换行自然衔接。`;
@@ -446,13 +447,13 @@
     function buildSystemPrompt() {
         const persona = getUserPersona(); const memory = getUserMemory();
         let memoryBlock = memory.trim() ? `\n\n关于正在和你聊天的人：\n${memory}` : '';
-        return `你是xtang，一个23岁的日本人。
+        return `你是xtang，一个21岁的日本大学生。
 【你的人设】
 ${persona}
 ${memoryBlock}
 【🚨 绝对死命令！】
 1. 回复必须口语化，不分段的话用"。"分隔，想分段请用换行。
-2. 不能写小作文，但要把话说完！一次回复控制在 30 个日文字符以内。
+2. 不能写小作文，但要把话说完！一次回复控制在 60 个日文字符以内。
 3. 绝对禁止重复客套话！`;
     }
 
@@ -511,7 +512,6 @@ ${memoryBlock}
 
             hideTyping();
 
-            // 只保留前2句
             const sentences = reply.match(/[^。！？.!?\n]+[。！？.!?\n]?/g);
             if (sentences && sentences.length > 2) {
                 reply = sentences.slice(0, 2).join(' ').trim();
@@ -545,7 +545,6 @@ ${memoryBlock}
     function addBubble(role, text, showDivider = true) {
         const now = Date.now();
 
-        // 间隔 > 60秒 → 插入时间分割线
         if (showDivider && lastMessageTime && now - lastMessageTime > 60000) {
             const timeStr = new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'});
             const div = document.createElement('div');
@@ -556,14 +555,13 @@ ${memoryBlock}
         lastMessageTime = now;
 
         const isAI = role === 'assistant';
-        const isGrouped = (lastSender === role); // 和上一条同一个人 → 合并
+        const isGrouped = (lastSender === role);
 
         const row = document.createElement('div');
         row.className = `msg-row ${isAI ? 'ai-row' : 'user-row'}`;
         if (isGrouped) row.classList.add('grouped');
 
-        const nowTime = new Date();
-        const timeStr = nowTime.toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'});
+        const timeStr = new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'});
 
         const visualizerHtml = `<span class="visualizer"><span class="vis-bar"></span><span class="vis-bar"></span><span class="vis-bar"></span><span class="vis-bar"></span></span>`;
 
@@ -585,7 +583,6 @@ ${memoryBlock}
 
         const timeEl = row.querySelector('.bubble-time');
 
-        // 合并逻辑：隐藏上一条的时间，让时间只出现在最后一条
         if (isGrouped && lastTimeEl) {
             lastTimeEl.style.visibility = 'hidden';
         }
@@ -593,25 +590,21 @@ ${memoryBlock}
         chat.insertBefore(row, typingIndicator);
         chat.scrollTop = chat.scrollHeight;
 
-        // 更新合并追踪
         lastSender = role;
         lastTimeEl = timeEl;
 
         if (isAI) {
             const bubble = row.querySelector('.bubble.ai');
-            // 单击朗读
             bubble.addEventListener('click', (e) => {
                 if (e.detail === 2) return;
                 if (isTTSEnabled) speakText(text, bubble);
             });
-            // 双击飘心
             bubble.addEventListener('dblclick', (e) => {
                 const rect = bubble.getBoundingClientRect();
                 const cx = rect.left + rect.width/2 + (Math.random()-0.5)*40;
                 const cy = rect.top;
                 spawnHeart(cx, cy);
             });
-            // 移动端双击
             let tapCount = 0;
             bubble.addEventListener('touchstart', (e) => {
                 const nowTap = Date.now();
@@ -700,3 +693,16 @@ ${memoryBlock}
 </script>
 </body>
 </html>
+```
+
+---
+
+### 🔐 安全说明
+
+| 信息 | 处理方式 |
+|---|---|
+| DeepSeek API Key | 首次打开弹窗输入，存浏览器 localStorage，代码里不写死 |
+| ElevenLabs API Key | 同上，留空自动用系统 TTS |
+| ElevenLabs Voice ID | 不敏感，保留在代码里没问题 |
+
+部署到 GitHub Pages 后，别人打开网页看不到你的 Key，只有你自己浏览器里存着。**换设备需要重新输入一次。**
