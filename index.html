@@ -37,7 +37,9 @@
             background: linear-gradient(135deg, #6366f1, #4f46e5);
             display: flex; align-items: center; justify-content: center;
             font-size: 18px; flex-shrink: 0; position: relative;
+            cursor: pointer; transition: transform 0.15s ease;
         }
+        #header .avatar:active { transform: scale(0.85); }
         #header .name { font-size: 15px; font-weight: 600; color: #333; }
         #header .persona-badge {
             font-size: 11px; color: #888; background: #e8e8e8;
@@ -258,6 +260,7 @@
 </div>
 
 <div id="top-bar">
+    <button class="top-btn" id="dailyBtn" title="每日一句">📖</button>
     <button class="top-btn" id="autoMsgBtn" title="主动消息">🔔</button>
     <button class="top-btn" id="voiceBtn" title="语音输入">🎙️</button>
     <button class="top-btn" id="personaBtn">人设</button>
@@ -317,8 +320,10 @@
     const themeBtn = document.getElementById('themeBtn');
     const voiceBtn = document.getElementById('voiceBtn');
     const autoMsgBtn = document.getElementById('autoMsgBtn');
+    const dailyBtn = document.getElementById('dailyBtn');
     const unreadDot = document.getElementById('unreadDot');
     const contextMenu = document.getElementById('context-menu');
+    const avatarArea = document.getElementById('avatarArea');
 
     const defaultPersona = `22岁的大学生，性格开朗温柔
 喜欢叫对方"姐姐"
@@ -386,7 +391,9 @@ ${timeStr}
     let history = [{role: 'system', content: buildSystemPrompt()}];
     let lastMessageTime = 0;
     let autoMsgTimer = null;
+    let dailyMsgTimer = null;
     let autoMsgEnabled = localStorage.getItem('xtang_auto_msg') === 'true';
+    let dailyMsgEnabled = localStorage.getItem('xtang_daily_msg') === 'true';
 
     const saved = localStorage.getItem('xtang_history');
     if (saved) {
@@ -398,6 +405,7 @@ ${timeStr}
     }
 
     if (autoMsgEnabled) { autoMsgBtn.classList.add('active'); startAutoMsg(); }
+    if (dailyMsgEnabled) { dailyBtn.classList.add('active'); startDailyMsg(); }
 
     function renderHistory() {
         chat.innerHTML = ''; lastMessageTime = 0;
@@ -439,6 +447,21 @@ ${timeStr}
         chat.appendChild(el); chat.scrollTop = chat.scrollHeight;
     }
     function hideTyping() { const el = document.getElementById('typing-indicator'); if (el) el.remove(); }
+
+    // ── 打字音效 ──
+    function playTypingSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'triangle';
+            o.frequency.setValueAtTime(800 + Math.random() * 400, ctx.currentTime);
+            g.gain.setValueAtTime(0.03, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+            o.connect(g); g.connect(ctx.destination);
+            o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.03);
+        } catch(e) {}
+    }
 
     function playChime() {
         try {
@@ -520,13 +543,13 @@ ${timeStr}
         if (!contextMenu.contains(e.target)) contextMenu.classList.remove('show');
     });
 
-    async function sendMessage(text, isAuto = false) {
+    async function sendMessage(text, isAuto = false, specialPrompt = '') {
         if (!apiKey) return;
         const userBubble = isAuto ? null : addBubble('user', text);
         if (!isAuto) {
             history.push({role: 'user', content: text});
         } else {
-            history.push({role: 'system', content: `[现在是${getCurrentTimeString()}，你主动给正在聊天的人发一条消息。内容要自然，像突然想到对方一样。可以是一个小日常、一句关心、一个有趣的想法。记住一次只能说一句话。]`});
+            history.push({role: 'system', content: specialPrompt});
         }
         if (history[0]?.role === 'system') history[0].content = buildSystemPrompt();
         showTyping();
@@ -558,6 +581,7 @@ ${timeStr}
                 }
                 sentences.forEach((sentence, i) => {
                     setTimeout(() => {
+                        playTypingSound();
                         addBubble('ai', sentence.trim());
                         if (i === sentences.length - 1 && !isAuto) playChime();
                     }, i * 700);
@@ -579,12 +603,14 @@ ${timeStr}
         sendBtn.disabled = false; msgInput.disabled = false; msgInput.focus();
     }
 
+    // ── 主动消息 ──
     function startAutoMsg() {
         stopAutoMsg();
         function scheduleNext() {
             const delay = 10 * 60 * 1000 + Math.random() * 10 * 60 * 1000;
             autoMsgTimer = setTimeout(() => {
-                sendMessage('', true);
+                const prompt = `[现在是${getCurrentTimeString()}，你主动给正在聊天的人发一条消息。内容要自然，像突然想到对方一样。可以是一个小日常、一句关心、一个有趣的想法。记住一次只能说一句话。]`;
+                sendMessage('', true, prompt);
                 scheduleNext();
             }, delay);
         }
@@ -600,18 +626,76 @@ ${timeStr}
         if (autoMsgEnabled) {
             autoMsgBtn.classList.add('active');
             startAutoMsg();
-            const toast = document.createElement('div'); toast.className = 'copy-toast';
-            toast.textContent = '主动消息已开启 🔔'; document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 1200);
+            showToast('主动消息已开启 🔔');
         } else {
             autoMsgBtn.classList.remove('active');
             stopAutoMsg();
-            const toast = document.createElement('div'); toast.className = 'copy-toast';
-            toast.textContent = '主动消息已关闭'; document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 1200);
+            showToast('主动消息已关闭');
         }
     };
 
+    // ── 每日一句 ──
+    function startDailyMsg() {
+        stopDailyMsg();
+        function scheduleDaily() {
+            const now = new Date();
+            const next = new Date(now);
+            next.setHours(8, 0, 0, 0);
+            if (now >= next) next.setDate(next.getDate() + 1);
+            const delay = next.getTime() - now.getTime();
+            dailyMsgTimer = setTimeout(() => {
+                const prompt = `[现在是早晨。请给对方发一条日语学习句子，要简短实用。格式：先用日语写一句话，然后括号里用中文解释意思。例如：「今日も一日頑張ろうね！☀️（今天也要加油哦！☀️）」记住一次只能说一句话。]`;
+                sendMessage('', true, prompt);
+                scheduleDaily();
+            }, delay);
+        }
+        scheduleDaily();
+    }
+    function stopDailyMsg() {
+        if (dailyMsgTimer) { clearTimeout(dailyMsgTimer); dailyMsgTimer = null; }
+    }
+
+    dailyBtn.onclick = () => {
+        dailyMsgEnabled = !dailyMsgEnabled;
+        localStorage.setItem('xtang_daily_msg', dailyMsgEnabled);
+        if (dailyMsgEnabled) {
+            dailyBtn.classList.add('active');
+            startDailyMsg();
+            showToast('每日一句已开启 📖（每天早上8点）');
+        } else {
+            dailyBtn.classList.remove('active');
+            stopDailyMsg();
+            showToast('每日一句已关闭');
+        }
+    };
+
+    // ── 摸头/拍一拍 ──
+    avatarArea.addEventListener('dblclick', () => {
+        const responses = [
+            'えへへ、何？急に撫でないでよ…ちょっと照れるじゃん🥺',
+            'わっ！びっくりした！でも…もうちょっと撫でて？(≧▽≦)',
+            'ん？どうしたの急に？何かいいことあった？😊',
+            'もう、撫でるの好きだね！でも嫌じゃないよ✨',
+            'ふふ、撫でられるの結構好きかも…内緒だけど💕',
+            'えっ、今の何？もしかして褒めてる？ありがと！😆',
+            'ちょっと！急にそんなことされたらドキドキするじゃん…💓',
+            'なに？寂しくなった？大丈夫、ここにいるよ🥰'
+        ];
+        const randomReply = responses[Math.floor(Math.random() * responses.length)];
+        playTypingSound();
+        addBubble('ai', randomReply);
+        history.push({role: 'assistant', content: randomReply});
+        saveHistory();
+        playChime();
+    });
+
+    function showToast(msg) {
+        const toast = document.createElement('div'); toast.className = 'copy-toast';
+        toast.textContent = msg; document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 1500);
+    }
+
+    // ── 语音输入 ──
     voiceBtn.onclick = () => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -619,22 +703,12 @@ ${timeStr}
             rec.lang = 'ja-JP';
             rec.interimResults = false;
             rec.maxAlternatives = 1;
-            rec.onstart = () => {
-                const toast = document.createElement('div'); toast.className = 'copy-toast';
-                toast.textContent = '🎙️ 正在听...'; document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 2000);
-            };
+            rec.onstart = () => showToast('🎙️ 正在听...');
             rec.onresult = (e) => { send(e.results[0][0].transcript); };
-            rec.onerror = () => {
-                const toast = document.createElement('div'); toast.className = 'copy-toast';
-                toast.textContent = '语音识别失败，请手动输入'; document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 1200);
-            };
+            rec.onerror = () => showToast('语音识别失败，请手动输入');
             rec.start();
         } else {
-            const toast = document.createElement('div'); toast.className = 'copy-toast';
-            toast.textContent = '你的浏览器不支持语音输入'; document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 1200);
+            showToast('你的浏览器不支持语音输入');
         }
     };
 
@@ -643,44 +717,4 @@ ${timeStr}
 
     quickToggle.onclick = () => quickReplies.classList.toggle('open');
     quickReplies.querySelectorAll('.quick-tag').forEach(tag => {
-        tag.addEventListener('click', () => { send(tag.dataset.text); quickReplies.classList.remove('open'); });
-    });
-
-    clearBtn.onclick = () => {
-        if (confirm('确定清空所有对话吗？（记忆和人设会保留）')) {
-            history = [{role: 'system', content: buildSystemPrompt()}];
-            localStorage.removeItem('xtang_history'); chat.innerHTML = ''; lastMessageTime = 0;
-            const greeting = 'おはよう！今日は何してたの？😊';
-            addBubble('ai', greeting, false);
-            history.push({role: 'assistant', content: greeting}); saveHistory();
-        }
-    };
-
-    memoryBtn.onclick = () => { memoryText.value = getUserMemory(); memoryOverlay.classList.add('show'); };
-    memoryCancel.onclick = () => memoryOverlay.classList.remove('show');
-    memorySave.onclick = () => {
-        localStorage.setItem('xtang_memory', memoryText.value.trim());
-        if (history[0]?.role === 'system') history[0].content = buildSystemPrompt();
-        saveHistory(); memoryOverlay.classList.remove('show');
-        const toast = document.createElement('div'); toast.className = 'copy-toast'; toast.textContent = '记忆已保存';
-        document.body.appendChild(toast); setTimeout(() => toast.remove(), 1200);
-    };
-    memoryOverlay.addEventListener('click', (e) => { if (e.target === memoryOverlay) memoryOverlay.classList.remove('show'); });
-
-    personaBtn.onclick = () => { personaText.value = getUserPersona(); personaOverlay.classList.add('show'); };
-    personaCancel.onclick = () => personaOverlay.classList.remove('show');
-    personaSave.onclick = () => {
-        localStorage.setItem('xtang_persona', personaText.value.trim());
-        updatePersonaBadge();
-        if (history[0]?.role === 'system') history[0].content = buildSystemPrompt();
-        saveHistory(); personaOverlay.classList.remove('show');
-        const toast = document.createElement('div'); toast.className = 'copy-toast'; toast.textContent = '人设已更新';
-        document.body.appendChild(toast); setTimeout(() => toast.remove(), 1200);
-    };
-    personaOverlay.addEventListener('click', (e) => { if (e.target === personaOverlay) personaOverlay.classList.remove('show'); });
-
-    updatePersonaBadge();
-    renderHistory();
-</script>
-</body>
-</html>
+        tag.addEventListener('click', () => { send(tag.dataset
