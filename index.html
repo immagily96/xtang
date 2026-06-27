@@ -16,7 +16,7 @@
         /* 电脑版聊天容器 */
         #app-container {
             width: 100%; max-width: 600px; height: 100vh;
-            /* ===== 恢复粉红渐变背景 ===== */
+            /* ===== 这里是粉红渐变背景 ===== */
             background: linear-gradient(180deg, #ffd1d1 0%, #ffe8e8 100%);
             display: flex; flex-direction: column; position: relative;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
@@ -49,7 +49,7 @@
         /* ===== 聊天区域 ===== */
         #chat {
             flex: 1; overflow-y: auto; padding: 20px;
-            background: transparent;
+            background: transparent; /* 确保这里没有网格或灰色底色 */
             display: flex; flex-direction: column; gap: 12px;
         }
 
@@ -90,7 +90,7 @@
         .bubble-avatar.user-avatar { background-image: url('girl.jpg'); }
         .bubble-avatar.ai-avatar { background-image: url('boy.jpg'); }
 
-        /* ===== 底部输入区 (合并语音功能) ===== */
+        /* ===== 底部输入区 ===== */
         #input-area {
             height: 60px; 
             background: rgba(255, 255, 255, 0.85);
@@ -121,6 +121,20 @@
         #sendBtn { 
             background: #07c160; color: white; border: none; padding: 8px 20px; 
             border-radius: 20px; font-weight: 500; cursor: pointer; height: 36px;
+        }
+
+        /* ===== Toast 动画 (补全) ===== */
+        .copy-toast {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.75); color: white; padding: 8px 16px; border-radius: 20px;
+            font-size: 13px; z-index: 999; pointer-events: none;
+            animation: toastFade 1s ease forwards;
+        }
+        @keyframes toastFade {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
         }
     </style>
 </head>
@@ -153,7 +167,7 @@
     </div>
 </div>
 
-<!-- 弹窗 (保持一致) -->
+<!-- 弹窗 -->
 <div id="memory-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:100;justify-content:center;align-items:center;">
     <div style="background:white;border-radius:16px;padding:20px;width:85%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
         <h3 style="margin:0 0 8px 0;font-size:17px;color:#333;">🧠 关于你</h3>
@@ -290,7 +304,7 @@ ${memoryBlock}
         chat.scrollTop = chat.scrollHeight;
     }
 
-    // ===== 重写长按语音交互 =====
+    // ===== 长按语音交互 =====
     let isPressingVoice = false;
     let recognition = null;
     let longPressTimer = null;
@@ -318,10 +332,10 @@ ${memoryBlock}
         if (navigator.vibrate) navigator.vibrate(20);
         
         inputWrapper.classList.add('voice-mode');
-        // 模拟 Toast 提示
+        
         const toast = document.createElement('div'); toast.className = 'copy-toast'; 
         toast.textContent = '🎙️ 请说话...'; 
-        toast.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:white;padding:8px 16px;border-radius:20px;font-size:13px;z-index:999;pointer-events:none;animation:toastFade 1s ease forwards;"; document.body.appendChild(toast); setTimeout(() => toast.remove(), 1000);
+        document.body.appendChild(toast); setTimeout(() => toast.remove(), 1000);
         
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -332,11 +346,10 @@ ${memoryBlock}
             recognition.onresult = (e) => {
                 const transcript = e.results[0][0].transcript;
                 if(transcript.trim()) { 
-                    // 模拟发送中
                     const toast2 = document.createElement('div'); toast2.className = 'copy-toast'; 
                     toast2.textContent = '发送中'; 
-                    toast2.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:white;padding:8px 16px;border-radius:20px;font-size:13px;z-index:999;pointer-events:none;animation:toastFade 1s ease forwards;"; document.body.appendChild(toast2); setTimeout(() => toast2.remove(), 1000);
-                    send(transcript); 
+                    document.body.appendChild(toast2); setTimeout(() => toast2.remove(), 1000);
+                    sendMessage(transcript); 
                 }
             };
             recognition.onerror = () => { };
