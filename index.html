@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 【修改】修复 Viewport 警告：移除了 maximum-scale 和 user-scalable -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>xtang</title>
     <style>
         * { box-sizing: border-box; }
@@ -25,7 +26,9 @@
         #header {
             padding: 12px 16px; 
             background: rgba(255,255,255,0.6);
+            /* 【修改】增加兼容 Safari 的模糊滤镜前缀 */
             backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             display: flex; align-items: center; justify-content: space-between;
             border-bottom: 1px solid rgba(0,0,0,0.04);
         }
@@ -72,7 +75,6 @@
         .ai-row { justify-content: flex-start; padding: 0 16px 0 0; flex-direction: row; }
         .user-row { justify-content: flex-end; padding: 0 0 0 16px; flex-direction: row; }
 
-        /* 【修改】头像：AI用红色渐变，你（用户）用绿色渐变 */
         .msg-avatar {
             width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; margin-top: 2px;
             border: 1px solid rgba(0,0,0,0.04);
@@ -98,13 +100,12 @@
             border-bottom-right-radius: 4px;
         }
 
-        /* 【修改】缩小音频可视化播放器 */
         .bubble.ai .visualizer {
-            display: none; /* 默认隐藏 */
+            display: none;
             align-items: flex-end; gap: 2px; height: 14px;
         }
         .bubble.ai.speaking .visualizer {
-            display: flex; /* 说话时显示 */
+            display: flex;
         }
         .vis-bar {
             width: 2px; border-radius: 2px; background: #ff4757;
@@ -121,7 +122,9 @@
 
         #input-area {
             background: rgba(255,255,255,0.9);
+            /* 【修改】增加兼容 Safari 的模糊滤镜前缀 */
             backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             border-top: 1px solid rgba(255,255,255,0.8);
             padding: 12px 16px;
             display: flex; align-items: center; gap: 12px;
@@ -129,7 +132,11 @@
         .input-wrapper {
             flex: 1; height: 40px; position: relative; display: flex; align-items: center;
             background: white; border-radius: 22px; border: 1px solid #e4e4e4;
-            transition: all 0.2s; user-select: none; cursor: text;
+            transition: all 0.2s; 
+            /* 【修改】增加兼容 Safari 的用户选择禁止前缀 */
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: text;
         }
         .input-wrapper:focus-within { border-color: #95ec69; box-shadow: 0 0 0 2px rgba(149, 236, 105, 0.1); }
         .input-wrapper.voice-mode { border-color: #d0d0d0; background: #f0f0f0; }
@@ -231,7 +238,6 @@
     let apiKey = localStorage.getItem('xtang_ds_key');
     if (!apiKey) { apiKey = prompt("请输入 DeepSeek API Key："); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
 
-    // ===== 文字转语音 (ElevenLabs) & 音频可视化 =====
     let isTTSEnabled = true;
     /* 【需要修改的位置】把下面引号里的内容换成你的真实 Key */
     const ELEVENLABS_API_KEY = "sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b"; 
@@ -240,7 +246,6 @@
     async function speakText(text, bubbleEl) {
         if (!isTTSEnabled) return;
         
-        // 强行停止任何正在播放的音频（解决捂嘴和卡顿）
         if (currentAudio) {
             currentAudio.pause();
             currentAudio.currentTime = 0;
@@ -252,7 +257,6 @@
         const showStart = () => { if (bubbleEl) bubbleEl.classList.add('speaking'); };
         const showEnd = () => { if (bubbleEl) bubbleEl.classList.remove('speaking'); };
 
-        // 如果 Key 不对，直接调用系统自带语音
         if (!ELEVENLABS_API_KEY || ELEVENLABS_API_KEY.includes("sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b") || ELEVENLABS_API_KEY.length < 10) {
             const fallback = new SpeechSynthesisUtterance(text);
             fallback.lang = 'ja-JP'; fallback.rate = 0.9;
@@ -378,12 +382,10 @@ ${memoryBlock}
             const data = await resp.json();
             let reply = data.choices[0].message.content;
             
-            // 【修改】去除原本的 20 字符硬截断和省略号，只保留取第一句话的逻辑
             const sentences = reply.match(/[^。！？.!?]+[。！？.!?]?/g);
             if (sentences && sentences.length > 0) {
                 reply = sentences[0].trim(); 
             }
-            // 如果依然超出 20 字，只截取前 20 个字，但不加省略号 "…"
             if (reply.length > 20) {
                 reply = reply.substring(0, 20);
             }
