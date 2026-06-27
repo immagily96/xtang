@@ -18,7 +18,7 @@
         #app-container {
             width: 100%; max-width: 900px; 
             height: 100vh;
-            background: #fdf6f0; /* 清爽干净的浅粉底色 */
+            background: #fdf6f0;
             display: flex; flex-direction: column; position: relative;
             box-shadow: 0 4px 24px rgba(0,0,0,0.08);
             overflow: hidden; border-radius: 8px;
@@ -56,7 +56,7 @@
         /* 聊天区域 */
         #chat {
             flex: 1; overflow-y: auto; padding: 20px 16px 10px 16px;
-            display: flex; flex-direction: column; gap: 14px; /* 舒适的上下间距 */
+            display: flex; flex-direction: column; gap: 14px;
             background: transparent;
         }
         #chat::-webkit-scrollbar { width: 4px; }
@@ -74,8 +74,10 @@
         .msg-row { 
             display: flex; width: 100%; align-items: flex-start; gap: 8px; 
         }
-        .ai-row { justify-content: flex-start; padding-right: 20px; }
-        .user-row { justify-content: flex-end; padding-left: 20px; flex-direction: row-reverse; }
+        /* AI 靠左 */
+        .ai-row { justify-content: flex-start; padding: 0 16px 0 0; flex-direction: row; }
+        /* 用户靠右 (修整了方向，现在完全符合右侧逻辑) */
+        .user-row { justify-content: flex-end; padding: 0 0 0 16px; flex-direction: row; }
 
         .msg-avatar {
             width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; margin-top: 2px;
@@ -90,12 +92,10 @@
             line-height: 1.5; max-width: 75%; position: relative; 
             word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
-        /* AI 气泡 - 经典白 */
         .bubble.ai { 
             background: #ffffff; color: #111; 
             border-bottom-left-radius: 4px;
         }
-        /* 用户气泡 - 标志性绿 */
         .bubble.user { 
             background: #95ec69; color: #000; 
             border-bottom-right-radius: 4px;
@@ -114,11 +114,9 @@
             background: white; border-radius: 22px; border: 1px solid #e4e4e4;
             transition: all 0.2s; user-select: none; cursor: text;
         }
-        /* 激活输入框状态 */
         .input-wrapper:focus-within { border-color: #95ec69; box-shadow: 0 0 0 2px rgba(149, 236, 105, 0.1); }
         .input-wrapper.voice-mode { border-color: #d0d0d0; background: #f0f0f0; }
         
-        /* 语音蒙层 */
         .voice-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             border-radius: 22px; display: none; justify-content: center; align-items: center;
