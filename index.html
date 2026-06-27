@@ -27,13 +27,13 @@
             position: fixed; top: 0; left: 0; right: 0; height: 56px;
             background: #f7f7f7; border-bottom: 1px solid #e5e5e5;
             display: flex; align-items: center; justify-content: center;
-            padding: 0 16px; z-index: 11; 
+            padding: 0 16px; z-index: 11;
         }
         #settingsBtn {
             position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.04); border: none; 
+            background: rgba(0, 0, 0, 0.04); border: none;
             width: 32px; height: 32px; border-radius: 50%;
-            font-size: 16px; color: #666; 
+            font-size: 16px; color: #666;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: background 0.2s;
         }
@@ -47,7 +47,7 @@
             background-image: url('boy.jpg');
             background-size: cover; background-position: center;
             display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0; 
+            flex-shrink: 0;
         }
         .header-info { display: flex; flex-direction: column; justify-content: center; }
         .header-name { font-size: 16px; font-weight: 600; color: #111; line-height: 1.2; }
@@ -68,9 +68,9 @@
 
         #chat {
             position: fixed; top: 56px; left: 0; right: 0; bottom: 56px;
-            overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px;
+            overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 16px;
             -webkit-overflow-scrolling: touch;
-            background: transparent; 
+            background: transparent;
         }
 
         .msg-row {
@@ -87,8 +87,8 @@
         .bubble-avatar.ai-avatar { background-image: url('boy.jpg'); }
 
         .bubble {
-            max-width: 65%; padding: 8px 12px; border-radius: 18px; 
-            font-size: 15px; line-height: 1.4; word-wrap: break-word; position: relative; cursor: default;
+            max-width: 65%; padding: 10px 14px; border-radius: 18px;
+            font-size: 15px; line-height: 1.5; word-wrap: break-word; position: relative; cursor: default;
         }
         .ai { background: rgba(255, 255, 255, 0.95); border-bottom-left-radius: 4px; color: #111; }
         .ai::after {
@@ -253,7 +253,7 @@
 
     const defaultPersona = `21岁的日本大学生，性格开朗温柔，带一点年轻人的慵懒感，有点天然呆
 在东京读设计专业
-【语言规则】你是日本人，只说日语。回复必须纯日语，偶尔可以在结尾加一个简单的中文词。
+【语言规则】你是日本人，母语是日语。回复必须用日语，可以在结尾偶尔加一个简单中文词。
 【称呼】非常喜欢叫对方"姐姐"（お姉ちゃん）
 【爱好】很喜欢看电影，也喜欢看对方打CS，觉得超帅。
 【铁律】说话必须非常简单、口语化，只能回一句！绝对不能长篇大论！`;
@@ -277,7 +277,7 @@
     function buildSystemPrompt() {
         const persona = getUserPersona(); const memory = getUserMemory(); const timeStr = getCurrentTimeString();
         let memoryBlock = memory.trim() ? `\n\n关于正在和你聊天的人：\n${memory}` : '';
-        return `你是xtang，一个21岁的日本大学生。你的母语是日语。
+        return `你是xtang，一个21岁的日本大学生。你的母语是日语，你用日语思考和表达。
 
 【你的人设】
 ${persona}
@@ -285,7 +285,7 @@ ${persona}
 【当前时间】${timeStr}
 
 【🚨 绝对死命令！】
-1. 用日语思考和回复！你是日本人，回复必须是纯日语，偶尔可以在结尾加一个简单中文词。
+1. 用日语回复！你是日本人，回复必须是日语，可以在结尾偶尔加一个简单中文词。
 2. 回复只能是一句极短的日语口语！
 3. 语气词最多用よ、ね、ぞ。
 4. 绝对禁止长篇大论！${memoryBlock}`;
