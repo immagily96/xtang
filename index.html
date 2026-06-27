@@ -67,11 +67,11 @@
             -webkit-overflow-scrolling: touch;
         }
         .bubble {
-            max-width: 78%; padding: 10px 14px; border-radius: 20px; font-size: 15px;
+            max-width: 78%; padding: 10px 14px; border-radius: 20px; 
+            font-size: 16px; /* 调成 16px，非常接近你的截图 */
             line-height: 1.5; word-wrap: break-word; position: relative; cursor: default;
         }
         
-        /* 对方 AI 气泡 */
         .ai {
             background: white; align-self: flex-start; border-bottom-left-radius: 4px;
             color: #111;
@@ -83,7 +83,6 @@
         }
         body.theme-dark .ai::after { border-right-color: #3a3a3a; }
 
-        /* 我的气泡 */
         .user {
             background: #95ec69; align-self: flex-end; border-bottom-right-radius: 4px; color: #000;
         }
@@ -107,7 +106,7 @@
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes dotBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
 
-        /* ===== 底部微信风格输入区 ===== */
+        /* ===== 底部输入区 ===== */
         #input-area {
             position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
             background: #f7f7f7; display: flex; padding: 8px 12px; border-top: 1px solid #dcdcdc;
@@ -126,20 +125,23 @@
         #voiceBtnArea {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: none; justify-content: center; align-items: center;
-            color: #333; font-size: 16px; font-weight: bold; letter-spacing: 1px;
-            user-select: none;
+            color: #333; font-size: 16px; font-weight: 600; letter-spacing: 1px;
+            user-select: none; font-family: -apple-system, sans-serif;
         }
         #voiceBtnArea:active { background: #d0d0d0; }
 
         #inputWrapper {
             display: flex; width: 100%; height: 100%; align-items: center;
         }
-        .icon-mic-left {
-            width: 40px; display: flex; justify-content: center; color: #888; font-size: 18px; cursor: pointer; flex-shrink: 0;
+        .talk-label {
+            width: 46px; display: flex; justify-content: center; 
+            font-size: 13px; font-weight: 600; color: #999; cursor: pointer; flex-shrink: 0;
+            letter-spacing: 0.5px; font-family: -apple-system, sans-serif;
         }
         input {
-            flex: 1; border: none; padding: 0 4px 0 0; font-size: 16px; outline: none; background: transparent;
-            height: 100%; min-width: 0;
+            flex: 1; border: none; padding: 0 4px 0 0; 
+            font-size: 16px; /* 匹配气泡 */
+            outline: none; background: transparent; height: 100%; min-width: 0;
         }
         
         #sendBtn {
@@ -163,7 +165,7 @@
             100% { opacity: 0; }
         }
 
-        /* ===== 其它覆盖层 ===== */
+        /* ===== 覆盖层 ===== */
         #memory-overlay, #persona-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4); z-index: 100; justify-content: center; align-items: center;
@@ -202,11 +204,11 @@
 <div id="input-area">
     <div id="mainBtnWrapper">
         <div id="inputWrapper">
-            <div class="icon-mic-left" id="switchMicBtn">🎤</div>
+            <div class="talk-label" id="switchMicBtn">Talk</div>
             <input type="text" id="msg" placeholder="说点什么..." autocomplete="off">
         </div>
         <div id="voiceBtnArea">
-            <span style="color:#07c160;">🎤</span> 按住 说话
+            <span style="color:#07c160; margin-right: 4px;">🎤</span> 按住 说话
         </div>
     </div>
     <button id="sendBtn">发送</button>
@@ -278,11 +280,11 @@ ${persona}
 【当前时间】
 ${timeStr}
 
-【⚠️ 核心规则（必须遵守）】
-1. 聊天只回一两句，字数和你发来的差不多，坚决不写长篇大论！
-2. 日语口语为主，带ね、よ、じゃん。
-3. 表达必须自然、像真人日常聊天，拒绝生硬的问候或说明。
-4. 适当地加emoji或颜文字让对话更生动。
+【🚨 绝对死命令（违者扣分！）】
+1. 回复长度绝对不能超过你输入的消息长度的2倍！你发短句，我必回短句。
+2. 日语回复必须简短、口语化，如同截图里"めちゃ眠い"、"いまVRC中"这种极简风格。严禁超过2句话。
+3. 坚决不写解释说明、长篇大论。
+4. 请用日语回答为主，偶尔夹杂简单中文。
 ${memoryBlock}`;
     }
 
@@ -306,7 +308,7 @@ ${memoryBlock}`;
             addBubble(role, history[i].content, false);
         }
         if (history.length <= 1) {
-            const greeting = 'おはよう！今日は何してたの？😊';
+            const greeting = 'おはよう！😊';
             addBubble('ai', greeting, false);
             history.push({role: 'assistant', content: greeting}); saveHistory();
         }
@@ -382,8 +384,26 @@ ${memoryBlock}`;
             });
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             const data = await resp.json();
-            const reply = data.choices[0].message.content;
+            let reply = data.choices[0].message.content;
             
+            // 🚨 极其暴力的字数限制保护！
+            const userLen = text.length;
+            // 如果 AI 的回复长度 大于 用户输入的 2 倍 + 5个字符
+            if (reply.length > (userLen * 2 + 5)) {
+                // 尝试按句号、问号、感叹号切分
+                const sentences = reply.match(/[^。！？.!?]+[。！？.!?]?/g);
+                if (sentences && sentences.length > 1) {
+                    reply = sentences.slice(0, 1).join('').trim(); // 只保留第1句！
+                    // 如果第一句还长，再从内部截断一半
+                    if (reply.length > (userLen * 1.5)) {
+                       reply = reply.substring(0, userLen + 5) + '…';
+                    }
+                } else {
+                    // 强制截断到和用户差不多长度
+                    reply = reply.substring(0, userLen + 5) + '…';
+                }
+            }
+
             if (isAuto) history.pop();
             history.push({role: 'assistant', content: reply});
             saveHistory();
@@ -412,7 +432,7 @@ ${memoryBlock}`;
         setTimeout(() => toast.remove(), 1000);
     }
 
-    // ===== 语音模式逻辑 =====
+    // ===== 语音模式 =====
     let isPressingVoice = false;
     let recognition = null;
 
@@ -479,7 +499,7 @@ ${memoryBlock}`;
         }
     });
 
-    // ===== 设置菜单逻辑 =====
+    // ===== 设置菜单 =====
     settingsBtn.onclick = () => dropdown.classList.toggle('show');
     document.addEventListener('click', (e) => { if (!dropdown.contains(e.target) && e.target !== settingsBtn) dropdown.classList.remove('show'); });
 
