@@ -24,7 +24,7 @@
             overflow: hidden; border-radius: 8px;
         }
 
-        /* 顶部 Header (LINE 风格) */
+        /* 顶部 Header */
         #header {
             padding: 12px 16px; 
             background: rgba(255,255,255,0.6);
@@ -173,7 +173,6 @@
         <div class="header-tools">
             <span id="btnMemory">记忆</span>
             <span id="btnPersona">人设</span>
-            <!-- 变成完全统一的纯文本样式 -->
             <span id="btnTTS" class="tts-active">🔊 朗读</span>
             <span id="btnClear">清空</span>
         </div>
@@ -225,17 +224,58 @@
     let apiKey = localStorage.getItem('xtang_ds_key');
     if (!apiKey) { apiKey = prompt("请输入 DeepSeek API Key："); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
 
-    // ===== 文字转语音 (TTS) 功能及自动播放 =====
+    // ===== 替换为高级 AI 文字转语音 (ElevenLabs) =====
     let isTTSEnabled = true;
-    function speakText(text) {
+    
+    // 【请在下方填入你的 ElevenLabs API Key】
+    const ELEVENLABS_API_KEY = "sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b"; 
+    const ELEVENLABS_VOICE_ID = "WpkOjWrdwRn56WUVBAVk"; // 你指定的声音ID
+
+    async function speakText(text) {
         if (!isTTSEnabled) return;
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ja-JP';
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
-        window.speechSynthesis.speak(utterance);
+        window.speechSynthesis.cancel(); // 暂停可能还在播放的本地声音
+
+        try {
+            const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'audio/mpeg',
+                    'Content-Type': 'application/json',
+                    'xi-api-key': ELEVENLABS_API_KEY
+                },
+                body: JSON.stringify({
+                    text: text,
+                    model_id: 'eleven_monolingual_v1',
+                    voice_settings: {
+                        stability: 0.5,
+                        similarity_boost: 0.5
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`ElevenLabs API 请求失败: ${response.status}`);
+            }
+
+            // 将返回的 MP3 数据转换成网页可以播放的音频
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audio.play();
+
+            // 播放完毕自动释放内存
+            audio.onended = () => URL.revokeObjectURL(audioUrl);
+
+        } catch (e) {
+            console.warn("ElevenLabs 声音生成失败，自动切换为本地系统语音:", e.message);
+            // 遇到网络错误/Key错误时，使用系统的本地日语语音兜底，不影响聊天
+            const fallbackUtterance = new SpeechSynthesisUtterance(text);
+            fallbackUtterance.lang = 'ja-JP';
+            fallbackUtterance.rate = 0.9;
+            window.speechSynthesis.speak(fallbackUtterance);
+        }
     }
+    // ==================================================
 
     const ttsBtn = document.getElementById('btnTTS');
     ttsBtn.onclick = () => {
@@ -251,7 +291,6 @@
             window.speechSynthesis.cancel();
         }
     };
-    // =====================================
 
     const defaultPersona = `21岁的日本大学生，性格开朗温柔
 【语言规则】纯日语口语为主！绝不能说中文长篇大论！
@@ -329,7 +368,7 @@ ${memoryBlock}
             saveHistory();
             addBubble('assistant', reply);
 
-            // ===== 自动播放语音（新增） =====
+            // ===== 自动播放语音（调用 ElevenLabs） =====
             if (isTTSEnabled) {
                 speakText(reply);
             }
@@ -358,7 +397,7 @@ ${memoryBlock}
         }
         chat.appendChild(row);
 
-        // ===== 点击气泡手动播放语音（保留） =====
+        // ===== 点击气泡手动播放语音 =====
         if (isAI) {
             const bubble = row.querySelector('.bubble.ai');
             bubble.addEventListener('click', () => {
@@ -367,12 +406,11 @@ ${memoryBlock}
                 }
             });
         }
-        // ======================================
 
         chat.scrollTop = chat.scrollHeight;
     }
 
-    // ===== 长按语音交互 =====
+    // ===== 长按语音交互 (完全保留) =====
     let isPressingVoice = false;
     let recognition = null;
     let longPressTimer = null;
