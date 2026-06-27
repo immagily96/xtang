@@ -44,17 +44,15 @@
         .header-center {
             display: flex; align-items: center; gap: 10px;
         }
-        /* 头像引用情侣头像男孩图（请确保 html 文件同级目录下有 boy.jpg） */
         .header-avatar {
             width: 34px; height: 34px; border-radius: 50%;
-            background-image: url('boy.jpg');
-            background-size: cover; background-position: center;
+            background: linear-gradient(135deg, #ff6b6b, #ff4757, #ff6348);
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0; 
         }
         .header-info { display: flex; flex-direction: column; justify-content: center; }
         .header-name { font-size: 16px; font-weight: 600; color: #111; line-height: 1.2; }
-        /* 状态栏微调，淡粉色指示 */
+        /* 状态栏微调，去掉了绿爱心，换成了淡粉色指示 */
         .header-status { font-size: 10px; color: #888; line-height: 1.2; margin-top: 2px; transition: opacity 0.2s; display: flex; align-items: center; gap: 3px;}
         .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #f56262; }
 
@@ -71,48 +69,33 @@
         }
         #dropdown-menu .drop-item:active { background: #f5f5f5; }
 
-        /* ===== 聊天区 (情侣头像双向排版) ===== */
+        /* ===== 聊天区 ===== */
         #chat {
             position: fixed; top: 56px; left: 0; right: 0; bottom: 56px;
             overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
             -webkit-overflow-scrolling: touch;
             background: transparent; 
         }
-
-        .msg-row {
-            display: flex; align-items: flex-end; gap: 8px; width: 100%;
-        }
-        .msg-row.ai-row { justify-content: flex-start; }
-        .msg-row.user-row { justify-content: flex-end; flex-direction: row-reverse; }
-
-        .bubble-avatar {
-            width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-            background-size: cover; background-position: center;
-        }
-        /* 你的气泡头像 (女生图) */
-        .bubble-avatar.user-avatar {
-            background-image: url('girl.jpg');
-        }
-        /* AI气泡头像 (男生图) */
-        .bubble-avatar.ai-avatar {
-            background-image: url('boy.jpg');
-        }
-
         .bubble {
-            max-width: 65%; padding: 8px 12px; border-radius: 18px; 
+            max-width: 78%; padding: 8px 12px; border-radius: 18px; 
             font-size: 15px; line-height: 1.4; word-wrap: break-word; position: relative; cursor: default;
         }
         
         .ai {
-            background: rgba(255, 255, 255, 0.95); border-bottom-left-radius: 4px; color: #111;
+            background: rgba(255, 255, 255, 0.95); 
+            align-self: flex-start; border-bottom-left-radius: 4px;
+            color: #111;
         }
+        body.theme-dark .ai { background: #3a3a3a; color: #eee; }
         .ai::after {
             content: ''; position: absolute; bottom: 0; left: -6px; width: 0; height: 0;
-            border-right: 7px solid rgba(255, 255, 255, 0.95); border-top: 7px solid transparent;
+            border-right: 7px solid rgba(255, 255, 255, 0.95);
+            border-top: 7px solid transparent;
         }
+        body.theme-dark .ai::after { border-right-color: #3a3a3a; }
 
         .user {
-            background: #95ec69; border-bottom-right-radius: 4px; color: #000;
+            background: #95ec69; align-self: flex-end; border-bottom-right-radius: 4px; color: #000;
         }
         .user::after {
             content: ''; position: absolute; bottom: 0; right: -6px; width: 0; height: 0;
@@ -126,7 +109,9 @@
             align-self: flex-start; background: rgba(255, 255, 255, 0.8); padding: 10px 12px; border-radius: 18px; border-bottom-left-radius: 4px;
             display: flex; align-items: center; gap: 4px;
         }
+        body.theme-dark .typing-bubble { background: #3a3a3a; }
         .typing-bubble::after { content: ''; position: absolute; bottom: 0; left: -6px; border-right: 7px solid rgba(255, 255, 255, 0.8); border-top: 7px solid transparent; }
+        body.theme-dark .typing-bubble::after { border-right-color: #3a3a3a; }
         .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: #999; animation: dotBounce 1.4s infinite ease-in-out; }
         .typing-dot:nth-child(2) { animation-delay: 0.2s; }
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
@@ -138,27 +123,52 @@
             background: #f7f7f7; display: flex; padding: 6px 10px; border-top: 1px solid #dcdcdc;
             align-items: center; z-index: 10; gap: 8px;
         }
+        
         #mainBtnWrapper {
             flex: 1; height: 38px; position: relative; display: flex; align-items: center; overflow: hidden;
             background: white; border-radius: 18px; border: 1px solid #e0e0e0;
             transition: all 0.2s; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
             user-select: none;
         }
-        #mainBtnWrapper.voice-mode { background: #f0f0f0; border-color: #ccc; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        
+        #mainBtnWrapper.voice-mode {
+            background: #f0f0f0; border-color: #ccc; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
         #voiceBtnArea {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: none; justify-content: center; align-items: center;
             color: #333; font-size: 14px; font-weight: 600; letter-spacing: 1px;
-            font-family: -apple-system, sans-serif; pointer-events: none; z-index: 5;
+            font-family: -apple-system, sans-serif;
+            pointer-events: none;
+            z-index: 5;
         }
-        #mainBtnWrapper.voice-mode #voiceBtnArea { display: flex; }
+        #mainBtnWrapper.voice-mode #voiceBtnArea {
+            display: flex;
+        }
 
-        #inputWrapper { display: flex; width: 100%; height: 100%; align-items: center; pointer-events: none; }
-        .fake-icon-placeholder { width: 44px; display: flex; justify-content: center; font-size: 13px; color: transparent; flex-shrink: 0; }
-        input { flex: 1; border: none; padding: 0 4px 0 0; font-size: 15px; outline: none; background: transparent; height: 100%; min-width: 0; pointer-events: auto; }
-        #sendBtn { background: #07c160; color: white; border: none; padding: 0 14px; border-radius: 18px; font-size: 14px; font-weight: 500; height: 34px; white-space: nowrap; cursor: pointer; flex-shrink: 0; display: flex; justify-content: center; align-items: center; }
+        #inputWrapper {
+            display: flex; width: 100%; height: 100%; align-items: center;
+            pointer-events: none;
+        }
+        .fake-icon-placeholder {
+            width: 44px; display: flex; justify-content: center; 
+            font-size: 13px; color: transparent; flex-shrink: 0;
+        }
+        input {
+            flex: 1; border: none; padding: 0 4px 0 0; 
+            font-size: 15px; outline: none; background: transparent; height: 100%; min-width: 0;
+            pointer-events: auto;
+        }
+        
+        #sendBtn {
+            background: #07c160; color: white; border: none; padding: 0 14px; border-radius: 18px;
+            font-size: 14px; font-weight: 500; height: 34px; white-space: nowrap; cursor: pointer; flex-shrink: 0;
+            display: flex; justify-content: center; align-items: center;
+        }
         #sendBtn:disabled { background: #aaa; }
 
+        /* ===== Toast ===== */
         .copy-toast {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.75); color: white; padding: 8px 16px; border-radius: 20px;
@@ -171,6 +181,20 @@
             80% { opacity: 1; }
             100% { opacity: 0; }
         }
+
+        /* ===== 覆盖层 ===== */
+        #memory-overlay, #persona-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); z-index: 100; justify-content: center; align-items: center;
+        }
+        .modal-card { background: white; border-radius: 16px; padding: 20px; width: 85%; max-width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
+        .modal-card h3 { margin: 0 0 8px 0; font-size: 17px; color: #333; }
+        .modal-card p { margin: 0 0 10px 0; font-size: 12px; color: #999; }
+        .modal-card textarea { width: 100%; height: 150px; border: 1px solid #ddd; border-radius: 10px; padding: 10px; font-size: 14px; line-height: 1.6; outline: none; resize: vertical; box-sizing: border-box; }
+        .modal-btn-row { display: flex; gap: 10px; margin-top: 12px; justify-content: flex-end; }
+        .modal-btn-row button { padding: 8px 16px; border-radius: 20px; font-size: 14px; border: none; cursor: pointer; }
+        .btn-cancel { background: #f0f0f0; color: #666; }
+        .btn-save { background: #07c160; color: white; }
     </style>
 </head>
 <body class="theme-light">
@@ -180,7 +204,9 @@
         <div class="header-avatar"></div>
         <div class="header-info">
             <div class="header-name">xtang</div>
-            <div class="header-status" id="headerStatus"><span class="status-dot"></span> 在线</div>
+            <div class="header-status" id="headerStatus">
+                <span class="status-dot"></span> 在线
+            </div>
         </div>
     </div>
     <button id="settingsBtn">⚙️</button>
@@ -200,7 +226,9 @@
             <div class="fake-icon-placeholder"></div>
             <input type="text" id="msg" placeholder="说点什么..." autocomplete="off">
         </div>
-        <div id="voiceBtnArea">按住 说话</div>
+        <div id="voiceBtnArea">
+            按住 说话
+        </div>
     </div>
     <button id="sendBtn">发送</button>
 </div>
@@ -218,7 +246,7 @@
     <div class="modal-card">
         <h3>🎭 xtang 的人设</h3>
         <p>编辑 xtang 的性格、说话风格和背景故事。</p>
-        <textarea id="personaText" placeholder="例如：&#10;21岁的大学生，性格开朗温柔&#10;喜欢叫我姐姐"></textarea>
+        <textarea id="personaText" placeholder="例如：&#10;22岁的大学生，性格开朗温柔&#10;喜欢叫我姐姐"></textarea>
         <div class="modal-btn-row"><button class="btn-cancel" id="personaCancel">取消</button><button class="btn-save" id="personaSave">保存</button></div>
     </div>
 </div>
@@ -234,13 +262,11 @@
     const dropdown = document.getElementById('dropdown-menu');
     const headerStatus = document.getElementById('headerStatus');
 
-    // 【核心修改点】在此处更新了人设背景
-    const defaultPersona = `21岁的大学生，性格开朗温柔
+    const defaultPersona = `22岁的大学生，性格开朗温柔
 喜欢叫对方"姐姐"
 有点天然呆但很真诚
 在东京读设计专业
-很喜欢看电影，也经常去电影院，有空就会拉着姐姐一起看
-知道对方平时喜欢玩 CS（反恐精英），虽然自己不太擅长打枪游戏，但会一直在旁边为她加油，觉得专注打游戏的样子很帅
+喜欢摄影和咖啡
 偶尔会撒娇，但该认真的时候很可靠
 说话语气轻松活泼，带一点年轻人的慵懒感
 正在自学中文，会一点点初级词汇，偶尔在句子末尾蹦出几个简单的中文词
@@ -301,7 +327,7 @@ ${memoryBlock}`;
             addBubble(role, history[i].content, false);
         }
         if (history.length <= 1) {
-            const greeting = 'おはよう😊 今天有什么计划吗？';
+            const greeting = 'おはよう😊';
             addBubble('ai', greeting, false);
             history.push({role: 'assistant', content: greeting}); saveHistory();
         }
@@ -320,19 +346,27 @@ ${memoryBlock}`;
     function showTyping() {
         hideTyping();
         headerStatus.innerHTML = '正在输入...';
-        
-        const row = document.createElement('div'); row.className = 'msg-row ai-row typing-row';
-        row.innerHTML = `
-            <div class="bubble-avatar ai-avatar"></div>
-            <div class="typing-bubble">
-                <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
-            </div>
-        `;
-        chat.appendChild(row); chat.scrollTop = chat.scrollHeight;
+        const el = document.createElement('div'); el.className = 'typing-bubble';
+        el.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+        chat.appendChild(el); chat.scrollTop = chat.scrollHeight;
     }
     function hideTyping() { 
         headerStatus.innerHTML = '<span class="status-dot"></span> 在线';
-        const el = document.querySelector('.typing-row'); if (el) el.remove(); 
+        const el = document.querySelector('.typing-bubble'); if (el) el.remove(); 
+    }
+
+    // ── 提示音效（恢复） ──
+    function playTypingSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const o = ctx.createOscillator(); const g = ctx.createGain();
+            o.type = 'triangle';
+            o.frequency.setValueAtTime(800 + Math.random() * 400, ctx.currentTime);
+            g.gain.setValueAtTime(0.03, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+            o.connect(g); g.connect(ctx.destination);
+            o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.03);
+        } catch(e) {}
     }
 
     function playChime() {
@@ -360,25 +394,23 @@ ${memoryBlock}`;
             lastMessageTime = now;
         }
 
-        const row = document.createElement('div');
-        const isAI = role === 'assistant' || role === 'ai';
-        row.className = `msg-row ${isAI ? 'ai-row' : 'user-row'}`;
+        const div = document.createElement('div');
+        div.className = `bubble ${role}`;
+        div.textContent = text;
 
-        if (isAI) {
-            row.innerHTML = `<div class="bubble-avatar ai-avatar"></div><div class="bubble ai">${text}</div>`;
-        } else {
-            row.innerHTML = `<div class="bubble user">${text}<span class="msg-status">✓✓</span></div><div class="bubble-avatar user-avatar"></div>`;
+        if (role === 'user') {
+            const status = document.createElement('span'); status.className = 'msg-status';
+            status.textContent = '✓✓'; div.appendChild(status);
         }
-
-        chat.appendChild(row);
+        chat.appendChild(div);
         const wasNearBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 80;
         requestAnimationFrame(() => { if (wasNearBottom) chat.scrollTop = chat.scrollHeight; });
-        return row;
+        return div;
     }
 
     async function sendMessage(text, isAuto = false, specialPrompt = '') {
         if (!apiKey) return;
-        addBubble('user', text);
+        const userBubble = isAuto ? null : addBubble('user', text);
         if (!isAuto) history.push({role: 'user', content: text});
         else history.push({role: 'system', content: specialPrompt});
         
@@ -409,7 +441,8 @@ ${memoryBlock}`;
 
             setTimeout(() => {
                 hideTyping();
-                addBubble('assistant', reply);
+                // 恢复“叮”的音效结尾
+                addBubble('ai', reply);
                 playChime();
             }, 800 + Math.random() * 500);
         } catch (e) {
