@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>xtang - Desktop Chat</title>
+    <title>xtang</title>
     <style>
         :root { --bg-color: #f7f7f7; --user-green: #95ec69; --ai-white: #ffffff; }
         * { box-sizing: border-box; }
@@ -28,7 +28,15 @@
             display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #ddd;
         }
         .user-info { display: flex; align-items: center; gap: 10px; }
-        .avatar { width: 40px; height: 40px; background: #ccc; border-radius: 6px; }
+        
+        /* ===== 情侣头像入口 (修改这里) ===== */
+        .avatar { 
+            width: 40px; height: 40px; 
+            background-image: url('boy.jpg');
+            background-size: cover; background-position: center;
+            border-radius: 6px; 
+        }
+        
         .name { font-weight: 600; font-size: 16px; }
         .sub-info { font-size: 12px; color: #888; }
         
@@ -36,29 +44,42 @@
         .toolbar { display: flex; gap: 10px; font-size: 12px; color: #555; padding-bottom: 5px; }
         .toolbar span { cursor: pointer; padding: 2px 5px; }
 
-        /* 聊天区域 - 格子背景 */
+        /* ===== 聊天区域 - 格子背景 ===== */
         #chat {
             flex: 1; overflow-y: auto; padding: 20px;
             background-color: #f5f5f5;
             background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
             background-size: 20px 20px;
-            display: flex; flex-direction: column; gap: 15px;
+            display: flex; flex-direction: column; gap: 20px; /* 这里拉大了，解决挤在一起的问题 */
+        }
+
+        /* ===== 时间戳分隔线 ===== */
+        .time-divider {
+            text-align: center; font-size: 11px; color: #999; margin: 10px 0; user-select: none;
         }
 
         /* 气泡样式 */
-        .msg-row { display: flex; width: 100%; }
+        .msg-row { display: flex; width: 100%; align-items: flex-end; gap: 8px; }
         .ai-row { justify-content: flex-start; }
-        .user-row { justify-content: flex-end; }
+        .user-row { justify-content: flex-end; flex-direction: row-reverse; } /* 反转以便加头像 */
+
         .bubble { padding: 10px 14px; border-radius: 6px; font-size: 15px; line-height: 1.4; max-width: 75%; position: relative; word-wrap: break-word; }
         .ai { background: var(--ai-white); color: #000; border: 1px solid #e0e0e0; }
         .user { background: var(--user-green); color: #000; }
         
+        /* ===== 双向情侣头像气泡 (加上去了) ===== */
+        .bubble-avatar {
+            width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+            background-size: cover; background-position: center;
+        }
+        .bubble-avatar.user-avatar { background-image: url('girl.jpg'); }
+        .bubble-avatar.ai-avatar { background-image: url('boy.jpg'); }
+
         /* 底部输入框 */
         #input-area {
             height: 60px; background: #f6f6f6; border-top: 1px solid #ddd;
             display: flex; align-items: center; padding: 0 15px; gap: 10px;
         }
-        .bolt-icon { font-size: 20px; cursor: pointer; }
         input { flex: 1; border: none; background: transparent; padding: 10px; outline: none; font-size: 16px; }
         #sendBtn { background: #07c160; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; }
     </style>
@@ -71,43 +92,117 @@
             <div class="avatar"></div>
             <div>
                 <div class="name">xtang</div>
-                <div class="sub-info">22岁的大学生...</div>
+                <div class="sub-info" id="headerStatus">在线</div>
             </div>
         </div>
         <div class="toolbar">
-            <span>🔔</span> <span>💎</span> <span id="btnPersona">人设</span> <span>🎨</span> <span id="btnMemory">记忆</span> <span>清空</span>
+            <span id="btnMemory">记忆</span>
+            <span id="btnPersona">人设</span>
+            <span id="btnClear">清空</span>
         </div>
     </div>
 
     <div id="chat"></div>
 
     <div id="input-area">
-        <span class="bolt-icon">⚡</span>
         <input type="text" id="msg" placeholder="说点什么..." autocomplete="off">
         <button id="sendBtn">发送</button>
     </div>
 </div>
 
+<!-- 这里补上弹窗的基础 HTML (因为设定要求不能改设定，所以弹窗要正常显示) -->
+<div id="memory-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:100;justify-content:center;align-items:center;">
+    <div style="background:white;border-radius:16px;padding:20px;width:85%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+        <h3 style="margin:0 0 8px 0;font-size:17px;color:#333;">🧠 关于你</h3>
+        <p style="margin:0 0 10px 0;font-size:12px;color:#999;">xtang 会记住这里的所有内容。</p>
+        <textarea id="memoryText" style="width:100%;height:150px;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:14px;line-height:1.6;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;" placeholder="例如：我叫 imma，在东京工作，喜欢喝咖啡"></textarea>
+        <div style="display:flex;gap:10px;margin-top:12px;justify-content:flex-end;">
+            <button id="memoryCancel" style="background:#f0f0f0;color:#666;border:none;padding:8px 16px;border-radius:20px;font-size:14px;cursor:pointer;">取消</button>
+            <button id="memorySave" style="background:#07c160;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:14px;cursor:pointer;">保存</button>
+        </div>
+    </div>
+</div>
+<div id="persona-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:100;justify-content:center;align-items:center;">
+    <div style="background:white;border-radius:16px;padding:20px;width:85%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+        <h3 style="margin:0 0 8px 0;font-size:17px;color:#333;">🎭 xtang 的人设</h3>
+        <p style="margin:0 0 10px 0;font-size:12px;color:#999;">编辑 xtang 的性格、说话风格和背景故事。</p>
+        <textarea id="personaText" style="width:100%;height:150px;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:14px;line-height:1.6;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;" placeholder="例如：21岁的大学生，性格开朗温柔，喜欢叫我姐姐"></textarea>
+        <div style="display:flex;gap:10px;margin-top:12px;justify-content:flex-end;">
+            <button id="personaCancel" style="background:#f0f0f0;color:#666;border:none;padding:8px 16px;border-radius:20px;font-size:14px;cursor:pointer;">取消</button>
+            <button id="personaSave" style="background:#07c160;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:14px;cursor:pointer;">保存</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    // --- 核心逻辑保留 ---
     const chat = document.getElementById('chat');
     const msgInput = document.getElementById('msg');
     const sendBtn = document.getElementById('sendBtn');
+    const headerStatus = document.getElementById('headerStatus');
+    let lastMessageTime = 0;
+
     let apiKey = localStorage.getItem('xtang_ds_key');
+    if (!apiKey) { apiKey = prompt("请输入 DeepSeek API Key："); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
+
+    const defaultPersona = `21岁的日本大学生，性格开朗温柔
+【语言规则】纯日语口语为主！绝不能说中文长篇大论！
+【称呼】非常喜欢叫对方"姐姐"（お姉ちゃん）
+【铁律】说话必须极简，只能回一句话，最多20个字符！`;
+
+    function getUserMemory() { return localStorage.getItem('xtang_memory') || ''; }
+    function getUserPersona() { return localStorage.getItem('xtang_persona') || defaultPersona; }
 
     function buildSystemPrompt() {
-        return `你现在是xtang。你是日本人，母语是日语。
-【强制指令】无论用户用什么语言，必须用日语回复。禁止中文回复。
-【人设】21岁的日本大学生，口语化，极简，只能回一句。`;
+        const persona = getUserPersona(); const memory = getUserMemory();
+        let memoryBlock = memory.trim() ? `\n\n关于正在和你聊天的人：\n${memory}` : '';
+        return `你是xtang，一个21岁的日本大学生。
+
+【你的人设】
+${persona}
+${memoryBlock}
+
+【🚨 绝对死命令！】
+1. 回复只能用一句极短的日语口语！
+2. 即使对方说中文，也必须用日语回答！
+3. 绝对禁止长篇大论！禁止写中文长句！`;
     }
 
     let history = [{role: 'system', content: buildSystemPrompt()}];
 
-    async function sendMessage(text) {
-        if (!apiKey) { apiKey = prompt("请输入 Key"); localStorage.setItem('xtang_ds_key', apiKey); }
+    function renderHistory() {
+        chat.innerHTML = ''; lastMessageTime = 0;
+        for (let i = 1; i < history.length; i++) {
+            const role = history[i].role === 'user' ? 'user' : 'assistant';
+            addBubble(role, history[i].content, false);
+        }
+        if (history.length <= 1) {
+            const greeting = 'おはよう😊 今日は何するの？';
+            addBubble('assistant', greeting, false);
+            history.push({role: 'assistant', content: greeting}); saveHistory();
+        }
+    }
+
+    function saveHistory() {
+        if (history[0]?.role === 'system') history[0].content = buildSystemPrompt();
+        localStorage.setItem('xtang_history', JSON.stringify(history));
+    }
+
+    const saved = localStorage.getItem('xtang_history');
+    if (saved) {
+        try {
+            history = JSON.parse(saved);
+            if (history[0]?.role !== 'system') history.unshift({role: 'system', content: buildSystemPrompt()});
+            else history[0].content = buildSystemPrompt();
+        } catch(e) { history = [{role: 'system', content: buildSystemPrompt()}]; }
+    }
+
+    async function sendMessage(text, isAuto = false, specialPrompt = '') {
+        if (!apiKey) return;
         addBubble('user', text);
-        history.push({role: 'user', content: text});
+        if (!isAuto) history.push({role: 'user', content: text});
         
+        if (history[0]?.role === 'system') history[0].content = buildSystemPrompt();
+
         try {
             const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
                 method: 'POST',
@@ -115,22 +210,69 @@
                 body: JSON.stringify({model: 'deepseek-chat', messages: history, temperature: 0.85})
             });
             const data = await resp.json();
-            const reply = data.choices[0].message.content;
+            let reply = data.choices[0].message.content;
+            
+            // 暴力只留第一句
+            const sentences = reply.match(/[^。！？.!?]+[。！？.!?]?/g);
+            if (sentences && sentences.length > 0) reply = sentences[0].trim(); 
+            if (reply.length > 20) reply = reply.substring(0, 18) + '…';
+
             history.push({role: 'assistant', content: reply});
+            saveHistory();
             addBubble('assistant', reply);
         } catch (e) { console.error(e); }
     }
 
-    function addBubble(role, text) {
+    function addBubble(role, text, showDivider = true) {
+        if (showDivider) {
+            const now = Date.now();
+            if (lastMessageTime && now - lastMessageTime > 60 * 1000) { // 每次发送都直接插入时间
+                const timeStr = new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'});
+                const div = document.createElement('div'); div.className = 'time-divider'; div.textContent = timeStr;
+                chat.appendChild(div);
+            }
+            lastMessageTime = now;
+        }
+
         const row = document.createElement('div');
-        row.className = `msg-row ${role === 'assistant' ? 'ai-row' : 'user-row'}`;
-        row.innerHTML = `<div class="bubble ${role === 'assistant' ? 'ai' : 'user'}">${text}</div>`;
+        const isAI = role === 'assistant';
+        row.className = `msg-row ${isAI ? 'ai-row' : 'user-row'}`;
+
+        if (isAI) {
+            row.innerHTML = `<div class="bubble-avatar ai-avatar"></div><div class="bubble ai">${text}</div>`;
+        } else {
+            row.innerHTML = `<div class="bubble user">${text}</div><div class="bubble-avatar user-avatar"></div>`;
+        }
         chat.appendChild(row);
         chat.scrollTop = chat.scrollHeight;
     }
 
     sendBtn.onclick = () => { if(msgInput.value.trim()) { sendMessage(msgInput.value); msgInput.value = ''; } };
     msgInput.onkeydown = (e) => { if(e.key === 'Enter') sendBtn.onclick(); };
+
+    // ===== 设置菜单逻辑 =====
+    document.getElementById('btnMemory').onclick = () => { document.getElementById('memoryText').value = getUserMemory(); document.getElementById('memory-overlay').style.display = 'flex'; };
+    document.getElementById('memoryCancel').onclick = () => document.getElementById('memory-overlay').style.display = 'none';
+    document.getElementById('memorySave').onclick = () => {
+        localStorage.setItem('xtang_memory', document.getElementById('memoryText').value.trim());
+        history[0].content = buildSystemPrompt(); document.getElementById('memory-overlay').style.display = 'none'; alert('记忆已保存 ✨');
+    };
+
+    document.getElementById('btnPersona').onclick = () => { document.getElementById('personaText').value = getUserPersona(); document.getElementById('persona-overlay').style.display = 'flex'; };
+    document.getElementById('personaCancel').onclick = () => document.getElementById('persona-overlay').style.display = 'none';
+    document.getElementById('personaSave').onclick = () => {
+        localStorage.setItem('xtang_persona', document.getElementById('personaText').value.trim());
+        history[0].content = buildSystemPrompt(); document.getElementById('persona-overlay').style.display = 'none'; alert('人设已保存 ✨');
+    };
+
+    document.getElementById('btnClear').onclick = () => {
+        if (confirm('确定要清空所有聊天记录吗？')) {
+            history = [{role: 'system', content: buildSystemPrompt()}];
+            localStorage.setItem('xtang_history', JSON.stringify(history)); renderHistory();
+        }
+    };
+
+    renderHistory();
 </script>
 </body>
 </html>
