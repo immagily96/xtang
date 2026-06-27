@@ -38,14 +38,14 @@
             display: flex; align-items: center; gap: 12px;
         }
         .header-avatar {
-            width: 40px; height: 40px; border-radius: 50%;
+            width: 38px; height: 38px; border-radius: 50%;
             background: linear-gradient(135deg, #ff6b6b, #ff4757, #ff6348);
             display: flex; align-items: center; justify-content: center;
-            font-size: 18px; color: white; flex-shrink: 0; 
+            flex-shrink: 0; 
         }
         .header-info { display: flex; flex-direction: column; justify-content: center; }
         .header-name { font-size: 17px; font-weight: 600; color: #111; line-height: 1.2; }
-        .header-status { font-size: 11px; color: #999; line-height: 1.2; margin-top: 2px; }
+        .header-status { font-size: 11px; color: #999; line-height: 1.2; margin-top: 2px; transition: opacity 0.2s; }
 
         /* ===== 下拉菜单 ===== */
         #dropdown-menu {
@@ -67,8 +67,8 @@
             -webkit-overflow-scrolling: touch;
         }
         .bubble {
-            max-width: 78%; padding: 10px 14px; border-radius: 20px; 
-            font-size: 16px; /* 调成 16px，非常接近你的截图 */
+            max-width: 78%; padding: 8px 12px; border-radius: 20px; 
+            font-size: 15.5px; /* 固定字号 */
             line-height: 1.5; word-wrap: break-word; position: relative; cursor: default;
         }
         
@@ -95,7 +95,7 @@
         }
 
         .typing-bubble {
-            align-self: flex-start; background: #e8e8e8; padding: 12px 16px; border-radius: 20px; border-bottom-left-radius: 4px;
+            align-self: flex-start; background: #e8e8e8; padding: 10px 14px; border-radius: 20px; border-bottom-left-radius: 4px;
             display: flex; align-items: center; gap: 4px;
         }
         body.theme-dark .typing-bubble { background: #3a3a3a; }
@@ -122,10 +122,11 @@
             background: #f0f0f0; border-color: #ccc; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
 
+        /* 重新设计语音模式 */
         #voiceBtnArea {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: none; justify-content: center; align-items: center;
-            color: #333; font-size: 16px; font-weight: 600; letter-spacing: 1px;
+            color: #333; font-size: 15px; font-weight: 600; letter-spacing: 1px;
             user-select: none; font-family: -apple-system, sans-serif;
         }
         #voiceBtnArea:active { background: #d0d0d0; }
@@ -133,15 +134,15 @@
         #inputWrapper {
             display: flex; width: 100%; height: 100%; align-items: center;
         }
-        .talk-label {
+        /* 纯文字切换区 */
+        .voice-switch-btn {
             width: 46px; display: flex; justify-content: center; 
-            font-size: 13px; font-weight: 600; color: #999; cursor: pointer; flex-shrink: 0;
+            font-size: 13px; font-weight: 600; color: #07c160; cursor: pointer; flex-shrink: 0;
             letter-spacing: 0.5px; font-family: -apple-system, sans-serif;
         }
         input {
             flex: 1; border: none; padding: 0 4px 0 0; 
-            font-size: 16px; /* 匹配气泡 */
-            outline: none; background: transparent; height: 100%; min-width: 0;
+            font-size: 15.5px; outline: none; background: transparent; height: 100%; min-width: 0;
         }
         
         #sendBtn {
@@ -184,10 +185,10 @@
 
 <div id="header">
     <div class="header-center">
-        <div class="header-avatar">🐶</div>
+        <div class="header-avatar"></div>
         <div class="header-info">
             <div class="header-name">xtang</div>
-            <div class="header-status">21岁 · 大学生 · 在线 💚</div>
+            <div class="header-status" id="headerStatus">在线 💚</div>
         </div>
     </div>
     <button id="settingsBtn">⚙️</button>
@@ -204,11 +205,12 @@
 <div id="input-area">
     <div id="mainBtnWrapper">
         <div id="inputWrapper">
-            <div class="talk-label" id="switchMicBtn">Talk</div>
+            <!-- 没图标了，这是纯文字开关 -->
+            <div class="voice-switch-btn" id="switchMicBtn">语音</div>
             <input type="text" id="msg" placeholder="说点什么..." autocomplete="off">
         </div>
         <div id="voiceBtnArea">
-            <span style="color:#07c160; margin-right: 4px;">🎤</span> 按住 说话
+            按住 说话
         </div>
     </div>
     <button id="sendBtn">发送</button>
@@ -242,6 +244,7 @@
     const switchMicBtn = document.getElementById('switchMicBtn');
     const settingsBtn = document.getElementById('settingsBtn');
     const dropdown = document.getElementById('dropdown-menu');
+    const headerStatus = document.getElementById('headerStatus');
 
     const defaultPersona = `22岁的大学生，性格开朗温柔
 喜欢叫对方"姐姐"
@@ -251,7 +254,8 @@
 偶尔会撒娇，但该认真的时候很可靠
 说话语气轻松活泼，带一点年轻人的慵懒感
 正在自学中文，会一点点初级词汇，偶尔在句子末尾蹦出几个简单的中文词
-聊天时喜欢用emoji和颜文字表达情绪，比如😊✨🥺💕(≧▽≦)(´；ω；｀)`;
+聊天时喜欢用emoji和颜文字表达情绪，比如😊✨🥺💕(≧▽≦)(´；ω；｀)
+【铁律】说话必须非常简短，只能回一句！绝对禁止长篇大论！`;
 
     const themes = ['theme-light', 'theme-dark', 'theme-grid', 'theme-warm'];
     let themeIdx = 0;
@@ -280,11 +284,10 @@ ${persona}
 【当前时间】
 ${timeStr}
 
-【🚨 绝对死命令（违者扣分！）】
-1. 回复长度绝对不能超过你输入的消息长度的2倍！你发短句，我必回短句。
-2. 日语回复必须简短、口语化，如同截图里"めちゃ眠い"、"いまVRC中"这种极简风格。严禁超过2句话。
-3. 坚决不写解释说明、长篇大论。
-4. 请用日语回答为主，偶尔夹杂简单中文。
+【🚨 死命令！违反即扣分！】
+1. 回复必须极简！只能有一句话！
+2. 禁止超过两句话！无论对方说什么，只回一句！
+3. 语气要日常、慵懒，随便回一句就行，别太认真。
 ${memoryBlock}`;
     }
 
@@ -308,7 +311,7 @@ ${memoryBlock}`;
             addBubble(role, history[i].content, false);
         }
         if (history.length <= 1) {
-            const greeting = 'おはよう！😊';
+            const greeting = 'おはよう😊';
             addBubble('ai', greeting, false);
             history.push({role: 'assistant', content: greeting}); saveHistory();
         }
@@ -326,11 +329,15 @@ ${memoryBlock}`;
 
     function showTyping() {
         hideTyping();
+        headerStatus.textContent = '正在输入...';
         const el = document.createElement('div'); el.className = 'typing-bubble';
         el.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
         chat.appendChild(el); chat.scrollTop = chat.scrollHeight;
     }
-    function hideTyping() { const el = document.querySelector('.typing-bubble'); if (el) el.remove(); }
+    function hideTyping() { 
+        headerStatus.textContent = '在线 💚';
+        const el = document.querySelector('.typing-bubble'); if (el) el.remove(); 
+    }
 
     function addBubble(role, text, showDivider = true) {
         if (showDivider) {
@@ -351,16 +358,6 @@ ${memoryBlock}`;
             const status = document.createElement('span'); status.className = 'msg-status';
             status.textContent = '✓✓'; div.appendChild(status);
         }
-
-        let longPressTimer;
-        div.addEventListener('touchstart', (e) => {
-            longPressTimer = setTimeout(() => {
-                alert("长按功能演示：你可以在这里加复制和删除菜单");
-            }, 500);
-        });
-        div.addEventListener('touchend', () => clearTimeout(longPressTimer));
-        div.addEventListener('touchmove', () => clearTimeout(longPressTimer));
-        
         chat.appendChild(div);
         const wasNearBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 80;
         requestAnimationFrame(() => { if (wasNearBottom) chat.scrollTop = chat.scrollHeight; });
@@ -386,22 +383,15 @@ ${memoryBlock}`;
             const data = await resp.json();
             let reply = data.choices[0].message.content;
             
-            // 🚨 极其暴力的字数限制保护！
-            const userLen = text.length;
-            // 如果 AI 的回复长度 大于 用户输入的 2 倍 + 5个字符
-            if (reply.length > (userLen * 2 + 5)) {
-                // 尝试按句号、问号、感叹号切分
-                const sentences = reply.match(/[^。！？.!?]+[。！？.!?]?/g);
-                if (sentences && sentences.length > 1) {
-                    reply = sentences.slice(0, 1).join('').trim(); // 只保留第1句！
-                    // 如果第一句还长，再从内部截断一半
-                    if (reply.length > (userLen * 1.5)) {
-                       reply = reply.substring(0, userLen + 5) + '…';
-                    }
-                } else {
-                    // 强制截断到和用户差不多长度
-                    reply = reply.substring(0, userLen + 5) + '…';
-                }
+            // 🚨 极度严格的暴力截断：只留一句话！
+            // 按句号、问号、感叹号切分，只取第一段
+            const sentences = reply.match(/[^。！？.!?]+[。！？.!?]?/g);
+            if (sentences && sentences.length > 0) {
+                reply = sentences[0].trim(); 
+            }
+            // ⚠️ 坚决不能超过 20 个字符！
+            if (reply.length > 20) {
+                reply = reply.substring(0, 18) + '…';
             }
 
             if (isAuto) history.pop();
@@ -432,17 +422,18 @@ ${memoryBlock}`;
         setTimeout(() => toast.remove(), 1000);
     }
 
-    // ===== 语音模式 =====
+    // ===== 无图标、纯文字语音模式 =====
     let isPressingVoice = false;
     let recognition = null;
 
+    // 点击左侧“语音”切换到按住说话模式
     switchMicBtn.addEventListener('click', () => {
         if (isPressingVoice) return;
         mainBtnWrapper.classList.add('voice-mode');
         inputWrapper.style.display = 'none';
         voiceBtnArea.style.display = 'flex';
         msgInput.blur();
-        showToast('点击底部变灰区域，长按说话');
+        showToast('松开即发');
         clearTimeout(window.voiceTimeout);
         window.voiceTimeout = setTimeout(() => { exitVoiceMode(); }, 10000);
     });
