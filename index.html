@@ -8,10 +8,12 @@
         * { box-sizing: border-box; }
         html, body {
             margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
-            font-family: -apple-system, sans-serif; background: #ededed;
+            font-family: -apple-system, sans-serif;
+            /* ===== 默认背景改为渐变红色系 ===== */
+            background: linear-gradient(180deg, #ffd1d1 0%, #ffe8e8 100%);
         }
 
-        body.theme-light { background: #ededed; }
+        body.theme-light { background: linear-gradient(180deg, #ffd1d1 0%, #ffe8e8 100%); }
         body.theme-dark { background: #2c2c2c; }
         body.theme-grid {
             background-color: #f5f5f5;
@@ -22,9 +24,9 @@
         }
         body.theme-warm { background: #fdf6f0; }
 
-        /* ===== 顶部栏 (调整高度和间距) ===== */
+        /* ===== 顶部栏 ===== */
         #header {
-            position: fixed; top: 0; left: 0; right: 0; height: 56px; /* 稍微降低一点高度 */
+            position: fixed; top: 0; left: 0; right: 0; height: 56px;
             background: #f7f7f7; border-bottom: 1px solid #e5e5e5;
             display: flex; align-items: center; justify-content: center;
             padding: 0 16px; z-index: 11; 
@@ -37,7 +39,6 @@
         .header-center {
             display: flex; align-items: center; gap: 10px;
         }
-        /* 将头像改小，看起来精致很多 */
         .header-avatar {
             width: 34px; height: 34px; border-radius: 50%;
             background: linear-gradient(135deg, #ff6b6b, #ff4757, #ff6348);
@@ -61,30 +62,35 @@
         }
         #dropdown-menu .drop-item:active { background: #f5f5f5; }
 
-        /* ===== 聊天区 (修正聊天框位置) ===== */
+        /* ===== 聊天区 ===== */
         #chat {
-            position: fixed; top: 56px; left: 0; right: 0; bottom: 56px; /* 配合底部高度调整 */
+            position: fixed; top: 56px; left: 0; right: 0; bottom: 56px;
             overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
             -webkit-overflow-scrolling: touch;
+            /* 让聊天框也能看到背景渐变 */
+            background: transparent; 
         }
         .bubble {
             max-width: 78%; padding: 8px 12px; border-radius: 18px; 
-            font-size: 15px; /* 这里改小了，确保真实显示大小为舒适中小号 */
-            line-height: 1.4; word-wrap: break-word; position: relative; cursor: default;
+            font-size: 15px; line-height: 1.4; word-wrap: break-word; position: relative; cursor: default;
         }
         
         .ai {
-            background: white; align-self: flex-start; border-bottom-left-radius: 4px;
+            /* AI气泡使用带一点点透明的白色，融入红色背景 */
+            background: rgba(255, 255, 255, 0.95); 
+            align-self: flex-start; border-bottom-left-radius: 4px;
             color: #111;
         }
         body.theme-dark .ai { background: #3a3a3a; color: #eee; }
         .ai::after {
             content: ''; position: absolute; bottom: 0; left: -6px; width: 0; height: 0;
-            border-right: 7px solid white; border-top: 7px solid transparent;
+            border-right: 7px solid rgba(255, 255, 255, 0.95);
+            border-top: 7px solid transparent;
         }
         body.theme-dark .ai::after { border-right-color: #3a3a3a; }
 
         .user {
+            /* 用户气泡保持绿色不动，对比鲜明 */
             background: #95ec69; align-self: flex-end; border-bottom-right-radius: 4px; color: #000;
         }
         .user::after {
@@ -96,27 +102,29 @@
         }
 
         .typing-bubble {
-            align-self: flex-start; background: #e8e8e8; padding: 10px 12px; border-radius: 18px; border-bottom-left-radius: 4px;
+            align-self: flex-start; background: rgba(255, 255, 255, 0.8); padding: 10px 12px; border-radius: 18px; border-bottom-left-radius: 4px;
             display: flex; align-items: center; gap: 4px;
         }
         body.theme-dark .typing-bubble { background: #3a3a3a; }
-        .typing-bubble::after { content: ''; position: absolute; bottom: 0; left: -6px; border-right: 7px solid #e8e8e8; border-top: 7px solid transparent; }
+        .typing-bubble::after { content: ''; position: absolute; bottom: 0; left: -6px; border-right: 7px solid rgba(255, 255, 255, 0.8); border-top: 7px solid transparent; }
         body.theme-dark .typing-bubble::after { border-right-color: #3a3a3a; }
         .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: #999; animation: dotBounce 1.4s infinite ease-in-out; }
         .typing-dot:nth-child(2) { animation-delay: 0.2s; }
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes dotBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
 
-        /* ===== 底部输入区 (调整高度和空隙) ===== */
+        /* ===== 底部输入区 ===== */
         #input-area {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 56px; /* 调低高度 */
+            position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
             background: #f7f7f7; display: flex; padding: 6px 10px; border-top: 1px solid #dcdcdc;
             align-items: center; z-index: 10; gap: 8px;
         }
+        
         #mainBtnWrapper {
             flex: 1; height: 38px; position: relative; display: flex; align-items: center; overflow: hidden;
             background: white; border-radius: 18px; border: 1px solid #e0e0e0;
             transition: all 0.2s; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+            user-select: none;
         }
         
         #mainBtnWrapper.voice-mode {
@@ -127,21 +135,26 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: none; justify-content: center; align-items: center;
             color: #333; font-size: 14px; font-weight: 600; letter-spacing: 1px;
-            user-select: none; font-family: -apple-system, sans-serif;
+            font-family: -apple-system, sans-serif;
+            pointer-events: none;
+            z-index: 5;
         }
-        #voiceBtnArea:active { background: #d0d0d0; }
+        #mainBtnWrapper.voice-mode #voiceBtnArea {
+            display: flex;
+        }
 
         #inputWrapper {
             display: flex; width: 100%; height: 100%; align-items: center;
+            pointer-events: none;
         }
-        .voice-switch-btn {
+        .fake-icon-placeholder {
             width: 44px; display: flex; justify-content: center; 
-            font-size: 13px; font-weight: 600; color: #07c160; cursor: pointer; flex-shrink: 0;
-            letter-spacing: 0.5px; font-family: -apple-system, sans-serif;
+            font-size: 13px; color: transparent; flex-shrink: 0;
         }
         input {
             flex: 1; border: none; padding: 0 4px 0 0; 
             font-size: 15px; outline: none; background: transparent; height: 100%; min-width: 0;
+            pointer-events: auto;
         }
         
         #sendBtn {
@@ -204,7 +217,7 @@
 <div id="input-area">
     <div id="mainBtnWrapper">
         <div id="inputWrapper">
-            <div class="voice-switch-btn" id="switchMicBtn">语音</div>
+            <div class="fake-icon-placeholder"></div>
             <input type="text" id="msg" placeholder="说点什么..." autocomplete="off">
         </div>
         <div id="voiceBtnArea">
@@ -239,7 +252,6 @@
     const mainBtnWrapper = document.getElementById('mainBtnWrapper');
     const inputWrapper = document.getElementById('inputWrapper');
     const voiceBtnArea = document.getElementById('voiceBtnArea');
-    const switchMicBtn = document.getElementById('switchMicBtn');
     const settingsBtn = document.getElementById('settingsBtn');
     const dropdown = document.getElementById('dropdown-menu');
     const headerStatus = document.getElementById('headerStatus');
@@ -381,13 +393,10 @@ ${memoryBlock}`;
             const data = await resp.json();
             let reply = data.choices[0].message.content;
             
-            // 🚨 极度严格的暴力截断：只留一句话！
-            // 按句号、问号、感叹号切分，只取第一段
             const sentences = reply.match(/[^。！？.!?]+[。！？.!?]?/g);
             if (sentences && sentences.length > 0) {
                 reply = sentences[0].trim(); 
             }
-            // ⚠️ 坚决不能超过 20 个字符！
             if (reply.length > 20) {
                 reply = reply.substring(0, 18) + '…';
             }
@@ -420,27 +429,36 @@ ${memoryBlock}`;
         setTimeout(() => toast.remove(), 1000);
     }
 
-    // ===== 无图标、纯文字语音模式 =====
+    // ===== 长按语音交互 =====
     let isPressingVoice = false;
     let recognition = null;
+    let longPressTimer = null;
 
-    switchMicBtn.addEventListener('click', () => {
+    function handlePointerDown(e) {
         if (isPressingVoice) return;
-        mainBtnWrapper.classList.add('voice-mode');
-        inputWrapper.style.display = 'none';
-        voiceBtnArea.style.display = 'flex';
-        msgInput.blur();
-        showToast('松开即发');
-        clearTimeout(window.voiceTimeout);
-        window.voiceTimeout = setTimeout(() => { exitVoiceMode(); }, 10000);
-    });
+        if (msgInput.value.trim().length > 0) return;
+
+        longPressTimer = setTimeout(() => {
+            startVoiceRecording(e);
+        }, 300);
+    }
+
+    function handlePointerUp() {
+        if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+        }
+        stopVoiceRecording();
+    }
 
     function startVoiceRecording(e) {
         if (isPressingVoice) return;
         isPressingVoice = true;
         if (navigator.vibrate) navigator.vibrate(20);
-        voiceBtnArea.style.background = '#dcdcdc';
+        
+        mainBtnWrapper.classList.add('voice-mode');
         showToast('🎙️ 请说话...');
+        
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
@@ -452,40 +470,34 @@ ${memoryBlock}`;
                 if(transcript.trim()) { showToast('发送中'); send(transcript); }
             };
             recognition.onerror = () => { showToast('识别失败，请打字'); };
-            recognition.onend = () => { isPressingVoice = false; voiceBtnArea.style.background = 'transparent'; };
+            recognition.onend = () => { 
+                isPressingVoice = false; 
+                mainBtnWrapper.classList.remove('voice-mode');
+            };
             recognition.start();
         } else {
             showToast('浏览器不支持语音');
-            isPressingVoice = false; voiceBtnArea.style.background = 'transparent';
+            isPressingVoice = false; 
+            mainBtnWrapper.classList.remove('voice-mode');
         }
     }
 
     function stopVoiceRecording() {
         if (!isPressingVoice) return;
         isPressingVoice = false;
-        voiceBtnArea.style.background = 'transparent';
-        if (recognition) { try { recognition.stop(); recognition = null; } catch(e) {} }
-    }
-
-    voiceBtnArea.addEventListener('touchstart', (e) => { e.preventDefault(); startVoiceRecording(e); });
-    voiceBtnArea.addEventListener('touchend', (e) => { e.preventDefault(); stopVoiceRecording(); });
-    voiceBtnArea.addEventListener('touchcancel', (e) => { e.preventDefault(); stopVoiceRecording(); });
-    voiceBtnArea.addEventListener('mousedown', startVoiceRecording);
-    voiceBtnArea.addEventListener('mouseup', stopVoiceRecording);
-    voiceBtnArea.addEventListener('mouseleave', stopVoiceRecording);
-
-    function exitVoiceMode() {
         mainBtnWrapper.classList.remove('voice-mode');
-        inputWrapper.style.display = 'flex';
-        voiceBtnArea.style.display = 'none';
-        clearTimeout(window.voiceTimeout);
+        if (recognition) { 
+            try { recognition.stop(); recognition = null; } catch(e) {} 
+        }
     }
 
-    document.addEventListener('click', (e) => {
-        if (mainBtnWrapper.classList.contains('voice-mode') && !voiceBtnArea.contains(e.target) && e.target !== switchMicBtn) {
-            exitVoiceMode();
-        }
-    });
+    mainBtnWrapper.addEventListener('touchstart', handlePointerDown);
+    mainBtnWrapper.addEventListener('touchend', handlePointerUp);
+    mainBtnWrapper.addEventListener('touchcancel', handlePointerUp);
+    
+    mainBtnWrapper.addEventListener('mousedown', handlePointerDown);
+    mainBtnWrapper.addEventListener('mouseup', handlePointerUp);
+    mainBtnWrapper.addEventListener('mouseleave', handlePointerUp);
 
     // ===== 设置菜单 =====
     settingsBtn.onclick = () => dropdown.classList.toggle('show');
