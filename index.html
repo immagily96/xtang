@@ -2,157 +2,112 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>xtang</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>xtang - Desktop Chat</title>
     <style>
+        :root { --bg-color: #f7f7f7; --user-green: #95ec69; --ai-white: #ffffff; }
         * { box-sizing: border-box; }
-        html, body {
-            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
-            font-family: -apple-system, sans-serif;
-            background: linear-gradient(180deg, #ffd1d1 0%, #ffe8e8 100%);
+        body {
+            margin: 0; padding: 0; height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #e0e0e0;
+            display: flex; justify-content: center; align-items: center;
         }
 
-        body.theme-light { background: linear-gradient(180deg, #ffd1d1 0%, #ffe8e8 100%); }
-        body.theme-dark { background: #2c2c2c; }
-        body.theme-grid {
-            background-color: #f5f5f5;
-            background-image: linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
-            background-size: 20px 20px;
+        /* 电脑版聊天容器 */
+        #app-container {
+            width: 100%; max-width: 600px; height: 100vh;
+            background: #ededed;
+            display: flex; flex-direction: column; position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
-        body.theme-warm { background: #fdf6f0; }
 
+        /* 顶部 Header */
         #header {
-            position: fixed; top: 0; left: 0; right: 0; height: 56px;
-            background: #f7f7f7; border-bottom: 1px solid #e5e5e5;
-            display: flex; align-items: center; justify-content: center;
-            padding: 0 16px; z-index: 11;
+            padding: 10px 16px; background: #ededed;
+            display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #ddd;
         }
-        #settingsBtn {
-            position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.04); border: none;
-            width: 32px; height: 32px; border-radius: 50%;
-            font-size: 16px; color: #666;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: background 0.2s;
-        }
-        #settingsBtn:active { background: rgba(0, 0, 0, 0.1); }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 40px; height: 40px; background: #ccc; border-radius: 6px; }
+        .name { font-weight: 600; font-size: 16px; }
+        .sub-info { font-size: 12px; color: #888; }
+        
+        /* 工具栏 */
+        .toolbar { display: flex; gap: 10px; font-size: 12px; color: #555; padding-bottom: 5px; }
+        .toolbar span { cursor: pointer; padding: 2px 5px; }
 
-        .header-center { display: flex; align-items: center; gap: 10px; }
-        .header-avatar { width: 34px; height: 34px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
-        .header-info { display: flex; flex-direction: column; justify-content: center; }
-        .header-name { font-size: 16px; font-weight: 600; color: #111; line-height: 1.2; }
-        .header-status { font-size: 10px; color: #888; line-height: 1.2; margin-top: 2px; display: flex; align-items: center; gap: 3px;}
-        .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #f56262; }
-
-        #dropdown-menu {
-            display: none; position: fixed; top: 56px; right: 10px;
-            background: white; border-radius: 12px; z-index: 20;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.12); padding: 4px 0; min-width: 120px;
-        }
-        #dropdown-menu.show { display: block; }
-        #dropdown-menu .drop-item { padding: 10px 14px; font-size: 13px; color: #333; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-
-        /* 优化聊天区域间距 */
+        /* 聊天区域 - 格子背景 */
         #chat {
-            position: fixed; top: 56px; left: 0; right: 0; bottom: 56px;
-            overflow-y: auto; padding: 20px 14px 40px 14px; 
-            display: flex; flex-direction: column; gap: 20px;
-            -webkit-overflow-scrolling: touch;
+            flex: 1; overflow-y: auto; padding: 20px;
+            background-color: #f5f5f5;
+            background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            display: flex; flex-direction: column; gap: 15px;
         }
 
-        .msg-row { display: flex; align-items: flex-end; gap: 8px; width: 100%; }
-        .msg-row.ai-row { justify-content: flex-start; }
-        .msg-row.user-row { justify-content: flex-end; flex-direction: row-reverse; }
-
-        .bubble-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; background: #ddd; }
-
-        .bubble {
-            max-width: 70%; padding: 12px 16px; border-radius: 18px;
-            font-size: 15px; line-height: 1.5; word-wrap: break-word; position: relative;
-        }
-        .ai { background: white; border-bottom-left-radius: 4px; color: #111; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .user { background: #95ec69; border-bottom-right-radius: 4px; color: #000; }
-        .user .msg-status { position: absolute; bottom: 2px; right: -16px; font-size: 10px; color: #aaa; }
-
+        /* 气泡样式 */
+        .msg-row { display: flex; width: 100%; }
+        .ai-row { justify-content: flex-start; }
+        .user-row { justify-content: flex-end; }
+        .bubble { padding: 10px 14px; border-radius: 6px; font-size: 15px; line-height: 1.4; max-width: 75%; position: relative; word-wrap: break-word; }
+        .ai { background: var(--ai-white); color: #000; border: 1px solid #e0e0e0; }
+        .user { background: var(--user-green); color: #000; }
+        
+        /* 底部输入框 */
         #input-area {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
-            background: #f7f7f7; display: flex; padding: 6px 10px; border-top: 1px solid #dcdcdc;
-            align-items: center; z-index: 10; gap: 8px;
+            height: 60px; background: #f6f6f6; border-top: 1px solid #ddd;
+            display: flex; align-items: center; padding: 0 15px; gap: 10px;
         }
-        #mainBtnWrapper { flex: 1; height: 38px; background: white; border-radius: 18px; border: 1px solid #e0e0e0; display: flex; align-items: center; }
-        input { flex: 1; border: none; padding: 0 12px; font-size: 15px; outline: none; background: transparent; }
-        #sendBtn { background: #07c160; color: white; border: none; padding: 0 14px; border-radius: 18px; font-size: 14px; height: 34px; cursor: pointer; }
+        .bolt-icon { font-size: 20px; cursor: pointer; }
+        input { flex: 1; border: none; background: transparent; padding: 10px; outline: none; font-size: 16px; }
+        #sendBtn { background: #07c160; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
-<body class="theme-light">
+<body>
 
-<div id="header">
-    <div class="header-center">
-        <div class="header-avatar"></div>
-        <div class="header-info">
-            <div class="header-name">xtang</div>
-            <div class="header-status" id="headerStatus"><span class="status-dot"></span> 在线</div>
+<div id="app-container">
+    <div id="header">
+        <div class="user-info">
+            <div class="avatar"></div>
+            <div>
+                <div class="name">xtang</div>
+                <div class="sub-info">22岁的大学生...</div>
+            </div>
+        </div>
+        <div class="toolbar">
+            <span>🔔</span> <span>💎</span> <span id="btnPersona">人设</span> <span>🎨</span> <span id="btnMemory">记忆</span> <span>清空</span>
         </div>
     </div>
-    <button id="settingsBtn">⚙️</button>
-    <div id="dropdown-menu">
-        <div class="drop-item" id="dropTheme">🎨 切换主题</div>
-        <div class="drop-item" id="dropPersona">🎭 编辑人设</div>
-        <div class="drop-item" id="dropMemory">🧠 编辑记忆</div>
-        <div class="drop-item" id="dropClear">🗑️ 清空聊天</div>
-    </div>
-</div>
 
-<div id="chat"></div>
+    <div id="chat"></div>
 
-<div id="input-area">
-    <div id="mainBtnWrapper">
+    <div id="input-area">
+        <span class="bolt-icon">⚡</span>
         <input type="text" id="msg" placeholder="说点什么..." autocomplete="off">
+        <button id="sendBtn">发送</button>
     </div>
-    <button id="sendBtn">发送</button>
 </div>
 
 <script>
+    // --- 核心逻辑保留 ---
     const chat = document.getElementById('chat');
     const msgInput = document.getElementById('msg');
     const sendBtn = document.getElementById('sendBtn');
-    
-    // 强制日语的系统 prompt
+    let apiKey = localStorage.getItem('xtang_ds_key');
+
     function buildSystemPrompt() {
-        const persona = localStorage.getItem('xtang_persona') || `21岁的日本大学生，性格开朗温柔，母语是日语。`;
-        const memory = localStorage.getItem('xtang_memory') || '';
-        
-        return `你是xtang。你的母语是日语。
-
-【强制指令（严格遵守）】
-1. 无论用户输入什么语言（包括中文），你必须“坚定地”只用日语回复！
-2. 绝对禁止使用中文回复，禁止翻译。
-3. 说话风格极度口语化，像真实的日本年轻人。
-4. 回复只能是一句极短的日语口语！绝对不能长篇大论。
-5. 结尾可以偶尔夹杂一个简单的中文词（如"姐姐"），但整句必须是日语。
-
-【你的人设】
-${persona}
-${memory ? `\n【关于用户】\n${memory}` : ''}`;
+        return `你现在是xtang。你是日本人，母语是日语。
+【强制指令】无论用户用什么语言，必须用日语回复。禁止中文回复。
+【人设】21岁的日本大学生，口语化，极简，只能回一句。`;
     }
 
     let history = [{role: 'system', content: buildSystemPrompt()}];
-    let apiKey = localStorage.getItem('xtang_ds_key');
-
-    // 自动触发 apiKey 设置
-    if (!apiKey) {
-        apiKey = prompt("请输入 DeepSeek API Key：");
-        if (apiKey) localStorage.setItem('xtang_ds_key', apiKey);
-    }
 
     async function sendMessage(text) {
-        if (!apiKey) return;
+        if (!apiKey) { apiKey = prompt("请输入 Key"); localStorage.setItem('xtang_ds_key', apiKey); }
         addBubble('user', text);
         history.push({role: 'user', content: text});
         
-        // 确保 prompt 是最新的
-        history[0].content = buildSystemPrompt();
-
         try {
             const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
                 method: 'POST',
@@ -163,30 +118,19 @@ ${memory ? `\n【关于用户】\n${memory}` : ''}`;
             const reply = data.choices[0].message.content;
             history.push({role: 'assistant', content: reply});
             addBubble('assistant', reply);
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e) { console.error(e); }
     }
 
     function addBubble(role, text) {
         const row = document.createElement('div');
         row.className = `msg-row ${role === 'assistant' ? 'ai-row' : 'user-row'}`;
-        row.innerHTML = role === 'assistant' 
-            ? `<div class="bubble-avatar"></div><div class="bubble ai">${text}</div>`
-            : `<div class="bubble user">${text}</div><div class="bubble-avatar" style="background:#95ec69"></div>`;
+        row.innerHTML = `<div class="bubble ${role === 'assistant' ? 'ai' : 'user'}">${text}</div>`;
         chat.appendChild(row);
         chat.scrollTop = chat.scrollHeight;
     }
 
-    sendBtn.onclick = () => {
-        const text = msgInput.value.trim();
-        if (text) {
-            msgInput.value = '';
-            sendMessage(text);
-        }
-    };
-
-    document.getElementById('settingsBtn').onclick = () => document.getElementById('dropdown-menu').classList.toggle('show');
+    sendBtn.onclick = () => { if(msgInput.value.trim()) { sendMessage(msgInput.value); msgInput.value = ''; } };
+    msgInput.onkeydown = (e) => { if(e.key === 'Enter') sendBtn.onclick(); };
 </script>
 </body>
 </html>
