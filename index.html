@@ -14,6 +14,14 @@
 
         body.theme-light { background: linear-gradient(180deg, #ffd1d1 0%, #ffe8e8 100%); }
         body.theme-dark { background: #2c2c2c; }
+        body.theme-grid {
+            background-color: #f5f5f5;
+            background-image:
+                linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        body.theme-warm { background: #fdf6f0; }
 
         /* ===== 顶部栏 ===== */
         #header {
@@ -22,6 +30,7 @@
             display: flex; align-items: center; justify-content: center;
             padding: 0 16px; z-index: 11; 
         }
+        /* 美化齿轮 */
         #settingsBtn {
             position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
             background: rgba(0, 0, 0, 0.04); border: none; 
@@ -35,16 +44,17 @@
         .header-center {
             display: flex; align-items: center; gap: 10px;
         }
-        /* ===== 顶部 AI 头像 (这里套用你选的男生图) ===== */
+        /* 头像引用情侣头像男孩图（请确保 html 文件同级目录下有 boy.jpg） */
         .header-avatar {
             width: 34px; height: 34px; border-radius: 50%;
-            background-image: url('boy.jpg'); /* 请确保图片在同一个文件夹，或者替换成绝对路径 */
+            background-image: url('boy.jpg');
             background-size: cover; background-position: center;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0; 
         }
         .header-info { display: flex; flex-direction: column; justify-content: center; }
         .header-name { font-size: 16px; font-weight: 600; color: #111; line-height: 1.2; }
+        /* 状态栏微调，淡粉色指示 */
         .header-status { font-size: 10px; color: #888; line-height: 1.2; margin-top: 2px; transition: opacity 0.2s; display: flex; align-items: center; gap: 3px;}
         .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #f56262; }
 
@@ -61,7 +71,7 @@
         }
         #dropdown-menu .drop-item:active { background: #f5f5f5; }
 
-        /* ===== 聊天区 (双向头像排版) ===== */
+        /* ===== 聊天区 (情侣头像双向排版) ===== */
         #chat {
             position: fixed; top: 56px; left: 0; right: 0; bottom: 56px;
             overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
@@ -69,14 +79,12 @@
             background: transparent; 
         }
 
-        /* 消息行容器 */
         .msg-row {
             display: flex; align-items: flex-end; gap: 8px; width: 100%;
         }
         .msg-row.ai-row { justify-content: flex-start; }
-        .msg-row.user-row { justify-content: flex-end; flex-direction: row-reverse; } /* 反转向量让自己在右侧 */
+        .msg-row.user-row { justify-content: flex-end; flex-direction: row-reverse; }
 
-        /* 对话气泡内嵌头像 */
         .bubble-avatar {
             width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
             background-size: cover; background-position: center;
@@ -114,7 +122,17 @@
             position: absolute; bottom: 2px; right: -16px; font-size: 10px; color: #aaa;
         }
 
-        /* ===== 底部输入区 (保持不变) ===== */
+        .typing-bubble {
+            align-self: flex-start; background: rgba(255, 255, 255, 0.8); padding: 10px 12px; border-radius: 18px; border-bottom-left-radius: 4px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .typing-bubble::after { content: ''; position: absolute; bottom: 0; left: -6px; border-right: 7px solid rgba(255, 255, 255, 0.8); border-top: 7px solid transparent; }
+        .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: #999; animation: dotBounce 1.4s infinite ease-in-out; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dotBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+        /* ===== 底部输入区 ===== */
         #input-area {
             position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
             background: #f7f7f7; display: flex; padding: 6px 10px; border-top: 1px solid #dcdcdc;
@@ -126,9 +144,7 @@
             transition: all 0.2s; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
             user-select: none;
         }
-        #mainBtnWrapper.voice-mode {
-            background: #f0f0f0; border-color: #ccc; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-        }
+        #mainBtnWrapper.voice-mode { background: #f0f0f0; border-color: #ccc; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
         #voiceBtnArea {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: none; justify-content: center; align-items: center;
@@ -189,29 +205,52 @@
     <button id="sendBtn">发送</button>
 </div>
 
-<div id="memory-overlay">... (此处省略弹窗代码，保持不变) ...</div>
-<div id="persona-overlay">... (此处省略弹窗代码，保持不变) ...</div>
+<div id="memory-overlay">
+    <div class="modal-card">
+        <h3>🧠 关于你</h3>
+        <p>xtang 会记住这里的所有内容。</p>
+        <textarea id="memoryText" placeholder="例如：&#10;我叫 imma&#10;在东京工作&#10;喜欢喝咖啡"></textarea>
+        <div class="modal-btn-row"><button class="btn-cancel" id="memoryCancel">取消</button><button class="btn-save" id="memorySave">保存</button></div>
+    </div>
+</div>
+
+<div id="persona-overlay">
+    <div class="modal-card">
+        <h3>🎭 xtang 的人设</h3>
+        <p>编辑 xtang 的性格、说话风格和背景故事。</p>
+        <textarea id="personaText" placeholder="例如：&#10;21岁的大学生，性格开朗温柔&#10;喜欢叫我姐姐"></textarea>
+        <div class="modal-btn-row"><button class="btn-cancel" id="personaCancel">取消</button><button class="btn-save" id="personaSave">保存</button></div>
+    </div>
+</div>
 
 <script>
     const chat = document.getElementById('chat');
     const msgInput = document.getElementById('msg');
     const sendBtn = document.getElementById('sendBtn');
     const mainBtnWrapper = document.getElementById('mainBtnWrapper');
+    const inputWrapper = document.getElementById('inputWrapper');
     const voiceBtnArea = document.getElementById('voiceBtnArea');
     const settingsBtn = document.getElementById('settingsBtn');
     const dropdown = document.getElementById('dropdown-menu');
     const headerStatus = document.getElementById('headerStatus');
 
-    const defaultPersona = `22岁的大学生，性格开朗温柔
+    // 【核心修改点】在此处更新了人设背景
+    const defaultPersona = `21岁的大学生，性格开朗温柔
 喜欢叫对方"姐姐"
 有点天然呆但很真诚
 在东京读设计专业
-喜欢摄影和咖啡
+很喜欢看电影，也经常去电影院，有空就会拉着姐姐一起看
+知道对方平时喜欢玩 CS（反恐精英），虽然自己不太擅长打枪游戏，但会一直在旁边为她加油，觉得专注打游戏的样子很帅
 偶尔会撒娇，但该认真的时候很可靠
 说话语气轻松活泼，带一点年轻人的慵懒感
 正在自学中文，会一点点初级词汇，偶尔在句子末尾蹦出几个简单的中文词
 聊天时喜欢用emoji和颜文字表达情绪，比如😊✨🥺💕(≧▽≦)(´；ω；｀)
 【铁律】说话必须非常简短，只能回一句！绝对禁止长篇大论！`;
+
+    const themes = ['theme-light', 'theme-dark', 'theme-grid', 'theme-warm'];
+    let themeIdx = 0;
+    const savedTheme = localStorage.getItem('xtang_theme');
+    if (savedTheme && themes.includes(savedTheme)) { document.body.className = savedTheme; themeIdx = themes.indexOf(savedTheme); }
 
     let apiKey = localStorage.getItem('xtang_ds_key');
     if (!apiKey) { apiKey = prompt("请输入 DeepSeek API Key："); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
@@ -219,12 +258,27 @@
     function getUserMemory() { return localStorage.getItem('xtang_memory') || ''; }
     function getUserPersona() { return localStorage.getItem('xtang_persona') || defaultPersona; }
 
+    function getCurrentTimeString() {
+        const now = new Date();
+        return now.toLocaleString('zh-CN', { weekday: 'long', hour: '2-digit', minute: '2-digit' });
+    }
+
     function buildSystemPrompt() {
-        const persona = getUserPersona(); const memory = getUserMemory();
+        const persona = getUserPersona(); const memory = getUserMemory(); const timeStr = getCurrentTimeString();
         let memoryBlock = memory.trim() ? `\n\n关于正在和你聊天的人（自然融入对话，不要刻意背诵）：\n${memory}` : '';
         return `你是xtang，以下是你的完整人设。请严格按照人设扮演，不要跳出角色。
-【你的人设】${persona}
-【🚨 死命令！】1. 回复必须极简！只能有一句话！2. 禁止超过两句话！3. 语气要日常、慵懒，随便回一句就行，别太认真。${memoryBlock}`;
+
+【你的人设】
+${persona}
+
+【当前时间】
+${timeStr}
+
+【🚨 死命令！违反即扣分！】
+1. 回复必须极简！只能有一句话！
+2. 禁止超过两句话！无论对方说什么，只回一句！
+3. 语气要日常、慵懒，随便回一句就行，别太认真。
+${memoryBlock}`;
     }
 
     const MAX_ROUNDS = 20; const MAX_MESSAGES = 1 + MAX_ROUNDS * 2;
@@ -243,11 +297,12 @@
     function renderHistory() {
         chat.innerHTML = ''; lastMessageTime = 0;
         for (let i = 1; i < history.length; i++) {
-            addBubble(history[i].role, history[i].content, false);
+            const role = history[i].role === 'user' ? 'user' : 'ai';
+            addBubble(role, history[i].content, false);
         }
         if (history.length <= 1) {
-            const greeting = 'おはよう😊';
-            addBubble('assistant', greeting, false);
+            const greeting = 'おはよう😊 今天有什么计划吗？';
+            addBubble('ai', greeting, false);
             history.push({role: 'assistant', content: greeting}); saveHistory();
         }
     }
@@ -265,14 +320,15 @@
     function showTyping() {
         hideTyping();
         headerStatus.innerHTML = '正在输入...';
-        const el = document.createElement('div'); el.className = 'msg-row ai-row typing-row';
-        el.innerHTML = `
+        
+        const row = document.createElement('div'); row.className = 'msg-row ai-row typing-row';
+        row.innerHTML = `
             <div class="bubble-avatar ai-avatar"></div>
             <div class="typing-bubble">
                 <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
             </div>
         `;
-        chat.appendChild(el); chat.scrollTop = chat.scrollHeight;
+        chat.appendChild(row); chat.scrollTop = chat.scrollHeight;
     }
     function hideTyping() { 
         headerStatus.innerHTML = '<span class="status-dot"></span> 在线';
@@ -305,7 +361,7 @@
         }
 
         const row = document.createElement('div');
-        const isAI = role === 'assistant';
+        const isAI = role === 'assistant' || role === 'ai';
         row.className = `msg-row ${isAI ? 'ai-row' : 'user-row'}`;
 
         if (isAI) {
@@ -340,8 +396,12 @@
             let reply = data.choices[0].message.content;
             
             const sentences = reply.match(/[^。！？.!?]+[。！？.!?]?/g);
-            if (sentences && sentences.length > 0) reply = sentences[0].trim(); 
-            if (reply.length > 20) reply = reply.substring(0, 18) + '…';
+            if (sentences && sentences.length > 0) {
+                reply = sentences[0].trim(); 
+            }
+            if (reply.length > 20) {
+                reply = reply.substring(0, 18) + '…';
+            }
 
             if (isAuto) history.pop();
             history.push({role: 'assistant', content: reply});
@@ -372,63 +432,98 @@
         setTimeout(() => toast.remove(), 1000);
     }
 
-    // ===== 语音交互 =====
-    let isPressingVoice = false, recognition = null, longPressTimer = null;
+    // ===== 长按语音交互 =====
+    let isPressingVoice = false;
+    let recognition = null;
+    let longPressTimer = null;
+
     function handlePointerDown(e) {
-        if (isPressingVoice || msgInput.value.trim().length > 0) return;
-        longPressTimer = setTimeout(() => startVoiceRecording(e), 300);
+        if (isPressingVoice) return;
+        if (msgInput.value.trim().length > 0) return;
+
+        longPressTimer = setTimeout(() => {
+            startVoiceRecording(e);
+        }, 300);
     }
+
     function handlePointerUp() {
-        if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+        if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+        }
         stopVoiceRecording();
     }
+
     function startVoiceRecording(e) {
         if (isPressingVoice) return;
-        isPressingVoice = true; if (navigator.vibrate) navigator.vibrate(20);
-        mainBtnWrapper.classList.add('voice-mode'); showToast('🎙️ 请说话...');
+        isPressingVoice = true;
+        if (navigator.vibrate) navigator.vibrate(20);
+        
+        mainBtnWrapper.classList.add('voice-mode');
+        showToast('🎙️ 请说话...');
+        
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition(); recognition.lang = 'ja-JP'; recognition.interimResults = false; recognition.maxAlternatives = 1;
-            recognition.onresult = (e) => { const transcript = e.results[0][0].transcript; if(transcript.trim()) { showToast('发送中'); send(transcript); } };
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ja-JP';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            recognition.onresult = (e) => {
+                const transcript = e.results[0][0].transcript;
+                if(transcript.trim()) { showToast('发送中'); send(transcript); }
+            };
             recognition.onerror = () => { showToast('识别失败，请打字'); };
-            recognition.onend = () => { isPressingVoice = false; mainBtnWrapper.classList.remove('voice-mode'); };
+            recognition.onend = () => { 
+                isPressingVoice = false; 
+                mainBtnWrapper.classList.remove('voice-mode');
+            };
             recognition.start();
-        } else { showToast('浏览器不支持语音'); isPressingVoice = false; mainBtnWrapper.classList.remove('voice-mode'); }
+        } else {
+            showToast('浏览器不支持语音');
+            isPressingVoice = false; 
+            mainBtnWrapper.classList.remove('voice-mode');
+        }
     }
-    function stopVoiceRecording() {
-        if (!isPressingVoice) return; isPressingVoice = false; mainBtnWrapper.classList.remove('voice-mode');
-        if (recognition) { try { recognition.stop(); recognition = null; } catch(e) {} }
-    }
-    mainBtnWrapper.addEventListener('touchstart', handlePointerDown); mainBtnWrapper.addEventListener('touchend', handlePointerUp); mainBtnWrapper.addEventListener('touchcancel', handlePointerUp);
-    mainBtnWrapper.addEventListener('mousedown', handlePointerDown); mainBtnWrapper.addEventListener('mouseup', handlePointerUp); mainBtnWrapper.addEventListener('mouseleave', handlePointerUp);
 
-    // 设置菜单
+    function stopVoiceRecording() {
+        if (!isPressingVoice) return;
+        isPressingVoice = false;
+        mainBtnWrapper.classList.remove('voice-mode');
+        if (recognition) { 
+            try { recognition.stop(); recognition = null; } catch(e) {} 
+        }
+    }
+
+    mainBtnWrapper.addEventListener('touchstart', handlePointerDown);
+    mainBtnWrapper.addEventListener('touchend', handlePointerUp);
+    mainBtnWrapper.addEventListener('touchcancel', handlePointerUp);
+    
+    mainBtnWrapper.addEventListener('mousedown', handlePointerDown);
+    mainBtnWrapper.addEventListener('mouseup', handlePointerUp);
+    mainBtnWrapper.addEventListener('mouseleave', handlePointerUp);
+
+    // ===== 设置菜单 =====
     settingsBtn.onclick = () => dropdown.classList.toggle('show');
     document.addEventListener('click', (e) => { if (!dropdown.contains(e.target) && e.target !== settingsBtn) dropdown.classList.remove('show'); });
 
-    // 主题切换
-    const themes = ['theme-light', 'theme-dark', 'theme-grid', 'theme-warm']; let themeIdx = 0;
-    const savedTheme = localStorage.getItem('xtang_theme');
-    if (savedTheme && themes.includes(savedTheme)) { document.body.className = savedTheme; themeIdx = themes.indexOf(savedTheme); }
     document.getElementById('dropTheme').onclick = () => {
         themeIdx = (themeIdx + 1) % themes.length; document.body.className = themes[themeIdx]; 
         localStorage.setItem('xtang_theme', themes[themeIdx]); dropdown.classList.remove('show');
     };
-    
     document.getElementById('dropPersona').onclick = () => { document.getElementById('personaText').value = getUserPersona(); document.getElementById('persona-overlay').style.display = 'flex'; dropdown.classList.remove('show'); };
     document.getElementById('personaCancel').onclick = () => document.getElementById('persona-overlay').style.display = 'none';
     document.getElementById('personaSave').onclick = () => {
         localStorage.setItem('xtang_persona', document.getElementById('personaText').value.trim());
         history[0].content = buildSystemPrompt(); document.getElementById('persona-overlay').style.display = 'none'; showToast('人设已保存 ✨');
     };
-    
+
     document.getElementById('dropMemory').onclick = () => { document.getElementById('memoryText').value = getUserMemory(); document.getElementById('memory-overlay').style.display = 'flex'; dropdown.classList.remove('show'); };
     document.getElementById('memoryCancel').onclick = () => document.getElementById('memory-overlay').style.display = 'none';
     document.getElementById('memorySave').onclick = () => {
         localStorage.setItem('xtang_memory', document.getElementById('memoryText').value.trim());
         history[0].content = buildSystemPrompt(); document.getElementById('memory-overlay').style.display = 'none'; showToast('记忆已保存 ✨');
     };
-    
+
     document.getElementById('dropClear').onclick = () => {
         if (confirm('确定要清空所有聊天记录吗？')) {
             history = [{role: 'system', content: buildSystemPrompt()}];
