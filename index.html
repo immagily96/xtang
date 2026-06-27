@@ -32,9 +32,10 @@
         .header-left {
             display: flex; align-items: center; gap: 12px;
         }
+        /* 使用网络通用图，消除 404 报错 */
         .header-avatar { 
             width: 36px; height: 36px; 
-            background-image: url('boy.jpg');
+            background-image: url('https://api.dicebear.com/7.x/avataaars/svg?seed=Felix');
             background-color: #ececec;
             background-size: cover; background-position: center;
             border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.05);
@@ -78,8 +79,9 @@
             background-color: #ececec; background-size: cover; background-position: center;
             border: 1px solid rgba(0,0,0,0.04);
         }
-        .msg-avatar.user-avatar { background-image: url('girl.jpg'); }
-        .msg-avatar.ai-avatar { background-image: url('boy.jpg'); }
+        /* 使用网络通用图，消除 404 报错 */
+        .msg-avatar.user-avatar { background-image: url('https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka'); }
+        .msg-avatar.ai-avatar { background-image: url('https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'); }
 
         .bubble { 
             padding: 10px 16px; border-radius: 16px; font-size: 15px; 
@@ -174,7 +176,7 @@
     </div>
 </div>
 
-<!-- 弹窗（统一保留） -->
+<!-- 弹窗保持原样 -->
 <div id="memory-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:100;justify-content:center;align-items:center;">
     <div style="background:white;border-radius:16px;padding:24px;width:85%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.15);">
         <h3 style="margin:0 0 8px 0;font-size:17px;color:#333;">🧠 关于你</h3>
@@ -209,16 +211,25 @@
     let apiKey = localStorage.getItem('xtang_ds_key');
     if (!apiKey) { apiKey = prompt("请输入 DeepSeek API Key："); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
 
-    // ===== 文字转语音 (ElevenLabs) 设置 =====
+    // ===== 文字转语音 (ElevenLabs) =====
     let isTTSEnabled = true;
-    // 【重要】请在这里填入你的 ElevenLabs API 密钥，注意保留两边的双引号
-    const ELEVENLABS_API_KEY = "这里填你的密钥"; 
-    // 【这里已经换成了你最新的声音 ID】
-    const ELEVENLABS_VOICE_ID = "R7KnJI27CitB8T6cCweN"; 
+    // ↓↓↓ 注意这里！必须在这里填你的真实 Key！
+    const ELEVENLABS_API_KEY = "sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b"; 
+    const ELEVENLABS_VOICE_ID = "R7KnJI27CitB8T6cCweN";
 
     async function speakText(text) {
         if (!isTTSEnabled) return;
         window.speechSynthesis.cancel();
+        
+        // 如果 Key 没有正确替换，就不调用API，直接使用系统语音
+        if (!ELEVENLABS_API_KEY || ELEVENLABS_API_KEY === "sk_你的真实API密钥") {
+            console.warn("未填入有效的 ElevenLabs API 密钥，使用系统语音");
+            const fallback = new SpeechSynthesisUtterance(text);
+            fallback.lang = 'ja-JP'; fallback.rate = 0.9;
+            window.speechSynthesis.speak(fallback);
+            return;
+        }
+
         try {
             const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}`, {
                 method: 'POST',
@@ -233,14 +244,17 @@
                     voice_settings: { stability: 0.5, similarity_boost: 0.5 }
                 })
             });
+            
+            // 如果因为 Key 无效报了 401，也会在这里自动捕获
             if (!response.ok) throw new Error(`ElevenLabs 请求失败: ${response.status}`);
+            
             const audioBlob = await response.blob();
             const audioUrl = URL.createObjectURL(audioBlob);
             const audio = new Audio(audioUrl);
             audio.play();
             audio.onended = () => URL.revokeObjectURL(audioUrl);
         } catch (e) {
-            console.warn("ElevenLabs 失败，切换到系统备用语音:", e.message);
+            console.warn("ElevenLabs 失败，切换到备用语音:", e.message);
             const fallback = new SpeechSynthesisUtterance(text);
             fallback.lang = 'ja-JP'; fallback.rate = 0.9;
             window.speechSynthesis.speak(fallback);
@@ -270,11 +284,9 @@
         const persona = getUserPersona(); const memory = getUserMemory();
         let memoryBlock = memory.trim() ? `\n\n关于正在和你聊天的人：\n${memory}` : '';
         return `你是xtang，一个21岁的日本大学生。
-
 【你的人设】
 ${persona}
 ${memoryBlock}
-
 【🚨 绝对死命令！】
 1. 回复只能用一句极短的日语口语！
 2. 即使对方说中文，也必须用日语回答！
