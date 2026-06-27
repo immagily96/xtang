@@ -32,13 +32,13 @@
         .header-left {
             display: flex; align-items: center; gap: 12px;
         }
-        /* 使用网络通用图，消除 404 报错 */
+        /* 【修改】彻底移除了外部图片，改为渐变纯色+图标 */
         .header-avatar { 
             width: 36px; height: 36px; 
-            background-image: url('https://api.dicebear.com/7.x/avataaars/svg?seed=Felix');
-            background-color: #ececec;
-            background-size: cover; background-position: center;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
             border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.05);
+            display: flex; justify-content: center; align-items: center;
+            color: white; font-size: 16px;
         }
         .header-info { display: flex; flex-direction: column; }
         .header-name { font-size: 16px; font-weight: 600; color: #222; }
@@ -74,14 +74,15 @@
         .ai-row { justify-content: flex-start; padding: 0 16px 0 0; flex-direction: row; }
         .user-row { justify-content: flex-end; padding: 0 0 0 16px; flex-direction: row; }
 
+        /* 【修改】彻底移除了外部图片依赖，用纯色+Emoji代替 */
         .msg-avatar {
             width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; margin-top: 2px;
-            background-color: #ececec; background-size: cover; background-position: center;
             border: 1px solid rgba(0,0,0,0.04);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 14px; color: white;
         }
-        /* 使用网络通用图，消除 404 报错 */
-        .msg-avatar.user-avatar { background-image: url('https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka'); }
-        .msg-avatar.ai-avatar { background-image: url('https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'); }
+        .msg-avatar.user-avatar { background: linear-gradient(135deg, #6b6bff, #4b4bff); }
+        .msg-avatar.ai-avatar { background: linear-gradient(135deg, #ff6b6b, #ff4757); }
 
         .bubble { 
             padding: 10px 16px; border-radius: 16px; font-size: 15px; 
@@ -153,7 +154,8 @@
 <div id="app-container">
     <div id="header">
         <div class="header-left">
-            <div class="header-avatar"></div>
+            <!-- 移除了图片，换成纯色+♂图标 -->
+            <div class="header-avatar">♂</div>
             <div class="header-info">
                 <div class="header-name">xtang</div>
                 <div class="header-status" id="headerStatus">在线</div>
@@ -176,7 +178,7 @@
     </div>
 </div>
 
-<!-- 弹窗保持原样 -->
+<!-- 弹窗（保持一致） -->
 <div id="memory-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:100;justify-content:center;align-items:center;">
     <div style="background:white;border-radius:16px;padding:24px;width:85%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.15);">
         <h3 style="margin:0 0 8px 0;font-size:17px;color:#333;">🧠 关于你</h3>
@@ -211,19 +213,19 @@
     let apiKey = localStorage.getItem('xtang_ds_key');
     if (!apiKey) { apiKey = prompt("请输入 DeepSeek API Key："); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
 
-    // ===== 文字转语音 (ElevenLabs) =====
+    // ===== 文字转语音 (ElevenLabs) 改进版 =====
     let isTTSEnabled = true;
-    // ↓↓↓ 注意这里！必须在这里填你的真实 Key！
-    const ELEVENLABS_API_KEY = "sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b"; 
+    // 【重要】这里必须换成你的真实 sk_ 开头的 Key！千万别加双引号之外的字符。
+    // 如果你不填正确，或者里面包含了中文占位符，语音会**自动降级**为系统语音，且不会报红字错误！
+    const ELEVENLABS_API_KEY = "sk_你的真实API密钥"; 
     const ELEVENLABS_VOICE_ID = "R7KnJI27CitB8T6cCweN";
 
     async function speakText(text) {
         if (!isTTSEnabled) return;
         window.speechSynthesis.cancel();
-        
-        // 如果 Key 没有正确替换，就不调用API，直接使用系统语音
-        if (!ELEVENLABS_API_KEY || ELEVENLABS_API_KEY === "sk_你的真实API密钥") {
-            console.warn("未填入有效的 ElevenLabs API 密钥，使用系统语音");
+
+        // 如果 API Key 没填，或者里面含有中文字符，直接走系统备用语音，绝不去调用 API 报 401。
+        if (!ELEVENLABS_API_KEY || ELEVENLABS_API_KEY.includes("你的真实API密钥") || ELEVENLABS_API_KEY.length < 10) {
             const fallback = new SpeechSynthesisUtterance(text);
             fallback.lang = 'ja-JP'; fallback.rate = 0.9;
             window.speechSynthesis.speak(fallback);
@@ -245,7 +247,6 @@
                 })
             });
             
-            // 如果因为 Key 无效报了 401，也会在这里自动捕获
             if (!response.ok) throw new Error(`ElevenLabs 请求失败: ${response.status}`);
             
             const audioBlob = await response.blob();
@@ -361,10 +362,12 @@ ${memoryBlock}
         const row = document.createElement('div');
         const isAI = role === 'assistant';
         row.className = `msg-row ${isAI ? 'ai-row' : 'user-row'}`;
+        
+        // 【修改】头像换成了对应颜色的 Emoji（红色系给AI，蓝紫色系给用户）
         if (isAI) {
-            row.innerHTML = `<div class="msg-avatar ai-avatar"></div><div class="bubble ai">${text}</div>`;
+            row.innerHTML = `<div class="msg-avatar ai-avatar">🙋</div><div class="bubble ai">${text}</div>`;
         } else {
-            row.innerHTML = `<div class="bubble user">${text}</div><div class="msg-avatar user-avatar"></div>`;
+            row.innerHTML = `<div class="bubble user">${text}</div><div class="msg-avatar user-avatar">💁</div>`;
         }
         chat.appendChild(row);
         if (isAI) {
