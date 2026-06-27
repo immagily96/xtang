@@ -2,7 +2,6 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 修正 Viewport 警告 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>xtang</title>
     <style>
@@ -233,20 +232,36 @@
     let currentAudio = null;
 
     let apiKey = localStorage.getItem('xtang_ds_key');
-    if (!apiKey) { apiKey = prompt("请输入 sk-9f459255c85942d7bea955b6ded52b48："); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
+    if (!apiKey) { apiKey = prompt("请输入 DeepSeek API Key："); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
 
     let isTTSEnabled = true;
-    /* 这里填你的 ElevenLabs Key */
+    /* 需要把下面引号里的内容换成你的真实 ElevenLabs Key */
     const ELEVENLABS_API_KEY = "sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b"; 
     const ELEVENLABS_VOICE_ID = "R7KnJI27CitB8T6cCweN";
 
+    // 预加载语音列表，确保手机读取日语发音
+    let jpVoice = null;
+    function findJapaneseVoice() {
+        const voices = window.speechSynthesis.getVoices();
+        // 优先找名字包含 Google 或 Microsoft 的日语声音（通常更好听）
+        jpVoice = voices.find(v => v.lang.includes('ja'));
+        return jpVoice;
+    }
+    // 如果是首次加载，语音列表可能还没准备好，监听变化
+    window.speechSynthesis.onvoiceschanged = () => {
+        findJapaneseVoice();
+    };
+    // 立即尝试获取一次
+    if (window.speechSynthesis) {
+        setTimeout(() => findJapaneseVoice(), 100);
+    }
+
     // ========================================================
-    // 【核心修复】针对安卓手机优化的语音播放逻辑
+    // 【核心修复】针对安卓端的中文发音问题
     // ========================================================
     async function speakText(text, bubbleEl) {
         if (!isTTSEnabled) return;
         
-        // 清理上一次播放
         if (currentAudio) {
             currentAudio.pause();
             currentAudio.currentTime = 0;
@@ -259,9 +274,13 @@
         const showEnd = () => { if (bubbleEl) bubbleEl.classList.remove('speaking'); };
 
         // --- 降级策略 1：未填入真实 Key 时使用设备自带语音 ---
-        if (!ELEVENLABS_API_KEY || ELEVENLABS_API_KEY.includes("sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b") || ELEVENLABS_API_KEY.length < 10) {
+        if (!ELEVENLABS_API_KEY || ELEVENLABS_API_KEY.includes("你的真实API密钥") || ELEVENLABS_API_KEY.length < 10) {
+            // 【修复】强制指定系统里的日语声音，防止安卓手机读成中文
             const fallback = new SpeechSynthesisUtterance(text);
-            fallback.lang = 'ja-JP'; fallback.rate = 0.9;
+            if (!jpVoice) findJapaneseVoice(); // 再次尝试获取
+            if (jpVoice) fallback.voice = jpVoice;
+            fallback.lang = 'ja-JP';
+            fallback.rate = 0.9;
             fallback.onstart = showStart;
             fallback.onend = showEnd;
             window.speechSynthesis.speak(fallback);
@@ -289,17 +308,20 @@
             const audioUrl = URL.createObjectURL(audioBlob);
             const audio = new Audio(audioUrl);
 
-            // 【安卓手机重点】开启预加载，确保缓存完整才播放，解决“断音”问题
             audio.preload = 'auto';
             audio.load();
 
-            // 等到音频缓冲快完成时再播放，防止安卓端卡顿
+            // 尝试播放
             audio.oncanplaythrough = () => {
-                audio.play().catch(e => {
-                    // 如果播放依然被浏览器拦截，直接静默降级到系统语音
+                audio.play().catch(err => {
+                    console.warn("安卓端浏览器的自动播放被拦截，降级到系统TTS", err);
+                    // 【修复】手机播放失败，必须立刻降级并强制日语
                     window.speechSynthesis.cancel();
                     const fallback = new SpeechSynthesisUtterance(text);
-                    fallback.lang = 'ja-JP'; fallback.rate = 0.9;
+                    if (!jpVoice) findJapaneseVoice();
+                    if (jpVoice) fallback.voice = jpVoice;
+                    fallback.lang = 'ja-JP';
+                    fallback.rate = 0.9;
                     fallback.onstart = showStart;
                     fallback.onend = showEnd;
                     window.speechSynthesis.speak(fallback);
@@ -313,7 +335,7 @@
                 if (currentAudio === audio) currentAudio = null;
             };
             
-            // 万一 oncanplaythrough 没触发，手动设置超时兜底（3秒）
+            // 3秒钟后如果还没播放，主动触发兜底
             setTimeout(() => {
                 if (audio.paused && !audio.ended) {
                     audio.play().catch(() => {});
@@ -323,16 +345,18 @@
             currentAudio = audio; 
 
         } catch (e) {
-            // --- 降级策略 2：API 网络请求出错，使用系统语音 ---
-            console.warn("ElevenLabs 失败，切换到系统备用语音:", e.message);
+            // --- 降级策略 2：API 请求出错，强制使用日语系统语音 ---
+            console.warn("ElevenLabs 降级:", e.message);
             const fallback = new SpeechSynthesisUtterance(text);
-            fallback.lang = 'ja-JP'; fallback.rate = 0.9;
+            if (!jpVoice) findJapaneseVoice();
+            if (jpVoice) fallback.voice = jpVoice;
+            fallback.lang = 'ja-JP';
+            fallback.rate = 0.9;
             fallback.onstart = showStart;
             fallback.onend = showEnd;
             window.speechSynthesis.speak(fallback);
         }
     }
-    // ========================================================
 
     const ttsBtn = document.getElementById('btnTTS');
     ttsBtn.onclick = () => {
