@@ -27,15 +27,60 @@
         }
         body.theme-warm { background: #fdf6f0; }
 
+        /* ===== 顶部栏重构 ===== */
         #header {
-            position: fixed; top: 0; left: 0; right: 0; height: 44px;
+            position: fixed; top: 0; left: 0; right: 0; height: 54px;
             background: #f7f7f7; border-bottom: 1px solid #dcdcdc;
-            display: flex; align-items: center; justify-content: flex-end;
-            padding: 0 10px; z-index: 11; gap: 8px;
+            display: flex; align-items: center; justify-content: center; /* 居中对齐 */
+            padding: 0 16px; z-index: 11;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        
+        /* 将原始功能按钮隐藏，移到一个可以通过双击调出的隐藏按钮中 */
+        #settingsBtn {
+            position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+            background: transparent; border: none; font-size: 18px; color: #888;
+            padding: 5px; cursor: pointer;
         }
 
+        /* 居中区域：头像 + 名字 + 状态 */
+        .header-center {
+            display: flex; align-items: center; gap: 10px;
+        }
+        /* 红色渐变头像框 */
+        .header-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #ff4757, #ff6348); 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; color: white; flex-shrink: 0;
+        }
+        .header-info {
+            display: flex; flex-direction: column; justify-content: center;
+            text-align: left;
+        }
+        .header-name {
+            font-size: 16px; font-weight: 600; color: #222; line-height: 1.2;
+        }
+        .header-status {
+            font-size: 10px; color: #999; line-height: 1.2; margin-top: 1px;
+        }
+
+        /* ===== 下拉隐藏菜单 ===== */
+        #dropdown-menu {
+            display: none; position: fixed; top: 54px; right: 10px;
+            background: white; border-radius: 12px; z-index: 20;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12); padding: 4px 0; min-width: 130px;
+        }
+        #dropdown-menu.show { display: block; }
+        #dropdown-menu .drop-item {
+            padding: 10px 16px; font-size: 13px; color: #333; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+        }
+        #dropdown-menu .drop-item:active { background: #f5f5f5; }
+
+        /* ===== 聊天区 ===== */
         #chat {
-            position: fixed; top: 44px; left: 0; right: 0; bottom: 50px;
+            position: fixed; top: 54px; left: 0; right: 0; bottom: 56px;
             overflow-y: auto; padding: 10px 14px;
             display: flex; flex-direction: column; gap: 8px;
             -webkit-overflow-scrolling: touch;
@@ -131,100 +176,66 @@
         }
         #context-menu .menu-item:active { background: #f5f5f5; }
 
-        #quick-replies {
-            position: fixed; top: 44px; left: 0; right: 0; height: 0;
-            overflow: hidden; z-index: 9;
-            background: rgba(255,255,255,0.92); backdrop-filter: blur(6px);
-            border-bottom: 1px solid #e0e0e0;
-            transition: height 0.2s ease;
-            display: flex; align-items: center; gap: 6px;
-            padding: 0 10px; flex-wrap: nowrap; overflow-x: auto;
-        }
-        #quick-replies.open { height: 40px; }
-        .quick-tag {
-            flex-shrink: 0; background: #f0f0f0; border: none;
-            padding: 5px 10px; border-radius: 14px; font-size: 12px;
-            color: #333; cursor: pointer; white-space: nowrap;
-        }
-        .quick-tag:active { background: #e0e0e0; }
-
+        /* ===== 底部输入区 ===== */
         #input-area {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 50px;
-            background: #f7f7f7; display: flex; padding: 6px 10px;
+            position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
+            background: #f7f7f7; display: flex; padding: 8px 10px;
             border-top: 1px solid #dcdcdc; align-items: center;
-            z-index: 10; gap: 6px;
+            z-index: 10; gap: 8px;
         }
-        input {
-            flex: 1; border: 1px solid #ccc; border-radius: 16px;
-            padding: 6px 12px; font-size: 14px; outline: none; background: white;
-        }
-        button {
-            background: #07c160; color: white; border: none;
-            padding: 6px 12px; border-radius: 16px; font-size: 13px;
-            white-space: nowrap; cursor: pointer;
-        }
-        button:disabled { background: #aaa; }
         
-        /* 底部功能按钮统一样式 */
-        #quickToggle, #voiceBtn {
-            background: #f0f0f0; color: #555; font-size: 14px;
-            padding: 6px 8px; border-radius: 16px; border: none; cursor: pointer;
+        /* 输入框包裹层 (内含麦克风触发区) */
+        .input-wrapper {
+            flex: 1; height: 100%; position: relative; display: flex; align-items: center;
+            background: white; border-radius: 20px; border: 1px solid #e0e0e0;
+            transition: border-color 0.2s;
         }
-        #voiceBtn:active, #quickToggle:active { background: #e0e0e0; }
+        .input-wrapper:focus-within { border-color: #07c160; }
+        
+        /* 输入框左侧麦克风长按区域 */
+        .mic-zone {
+            height: 100%; width: 40px; display: flex; justify-content: center; align-items: center;
+            color: #888; font-size: 18px; user-select: none; flex-shrink: 0;
+            border-right: 1px solid #f0f0f0;
+            touch-action: none; /* 防止触屏滚动 */
+            cursor: pointer;
+        }
+        .mic-zone:active, .mic-zone.recording { color: #07c160; background: #f0fcf4; border-top-left-radius: 20px; border-bottom-left-radius: 20px; }
 
-        #top-bar {
-            display: flex; gap: 4px; align-items: center;
+        input {
+            flex: 1; border: none; border-radius: 20px;
+            padding: 0 10px; font-size: 15px; outline: none; background: transparent;
+            height: 100%;
         }
-        .top-btn {
-            background: rgba(255,255,255,0.8); border: none;
-            padding: 3px 7px; border-radius: 8px; font-size: 10px;
-            color: #666; cursor: pointer; backdrop-filter: blur(4px);
-        }
-        .top-btn.active { background: #6366f1; color: white; }
-
-        #memory-overlay, #persona-overlay {
-            display: none; position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.4); z-index: 100;
-            justify-content: center; align-items: center;
-        }
-        #memory-overlay.show, #persona-overlay.show { display: flex; }
-        #memory-card, #persona-card {
-            background: white; border-radius: 16px; padding: 20px;
-            width: 85%; max-width: 360px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-        }
-        #memory-card h3, #persona-card h3 { margin: 0 0 8px 0; font-size: 17px; color: #333; }
-        #memory-card p, #persona-card p { margin: 0 0 10px 0; font-size: 12px; color: #999; }
-        #memory-card textarea, #persona-card textarea {
-            width: 100%; height: 180px; border: 1px solid #ddd;
-            border-radius: 10px; padding: 10px; font-size: 14px;
-            line-height: 1.6; outline: none; resize: vertical;
-            box-sizing: border-box; font-family: -apple-system, sans-serif;
-        }
-        #memory-card .btn-row, #persona-card .btn-row {
-            display: flex; gap: 10px; margin-top: 12px; justify-content: flex-end;
-        }
-        #memory-card .btn-cancel, #persona-card .btn-cancel {
-            background: #f0f0f0; color: #666; border: none;
-            padding: 8px 16px; border-radius: 20px; font-size: 14px;
-        }
-        #memory-card .btn-save, #persona-card .btn-save {
+        
+        button#sendBtn {
             background: #07c160; color: white; border: none;
-            padding: 8px 16px; border-radius: 20px; font-size: 14px;
+            padding: 6px 16px; border-radius: 18px; font-size: 14px; font-weight: 500;
+            white-space: nowrap; cursor: pointer; height: 34px;
         }
+        button#sendBtn:disabled { background: #aaa; }
+
     </style>
 </head>
 <body class="theme-light">
 
+<!-- 重构后的顶部 -->
 <div id="header">
-    <div id="top-bar">
-        <button class="top-btn" id="dailyBtn" title="每日一句">📖</button>
-        <button class="top-btn" id="autoMsgBtn" title="主动消息">🔔</button>
-        <button class="top-btn" id="personaBtn">人设</button>
-        <button class="top-btn" id="themeBtn">🎨</button>
-        <button class="top-btn" id="memoryBtn">记忆</button>
-        <button class="top-btn" id="clearBtn">清空</button>
+    <div class="header-center">
+        <div class="header-avatar">🐶</div>
+        <div class="header-info">
+            <div class="header-name">xtang</div>
+            <div class="header-status">21岁 · 大学生 · 在线 💚</div>
+        </div>
+    </div>
+    <button id="settingsBtn">⚙️</button>
+
+    <!-- 隐藏的设置小菜单 -->
+    <div id="dropdown-menu">
+        <div class="drop-item" id="dropTheme">🎨 切换主题</div>
+        <div class="drop-item" id="dropPersona">🎭 编辑人设</div>
+        <div class="drop-item" id="dropMemory">🧠 编辑记忆</div>
+        <div class="drop-item" id="dropClear">🗑️ 清空聊天</div>
     </div>
 </div>
 
@@ -235,68 +246,49 @@
     <div class="menu-item" data-action="delete">🗑️ 删除</div>
 </div>
 
-<div id="quick-replies">
-    <button class="quick-tag" data-text="わかった！">わかった！</button>
-    <button class="quick-tag" data-text="すごいね！">すごいね！</button>
-    <button class="quick-tag" data-text="ありがとう">ありがとう</button>
-    <button class="quick-tag" data-text="そうなんだ">そうなんだ</button>
-    <button class="quick-tag" data-text="ごめんね">ごめんね</button>
-    <button class="quick-tag" data-text="また後でね">また後でね</button>
-</div>
-
-<div id="memory-overlay">
-    <div id="memory-card">
-        <h3>✏️ 关于你</h3>
-        <p>xtang 会记住这里的所有内容。</p>
-        <textarea id="memoryText" placeholder="例如：&#10;我叫 imma&#10;在东京工作&#10;喜欢喝咖啡&#10;最近在学日语，N4 水平"></textarea>
-        <div class="btn-row">
-            <button class="btn-cancel" id="memoryCancel">取消</button>
-            <button class="btn-save" id="memorySave">保存</button>
-        </div>
-    </div>
-</div>
-
-<div id="persona-overlay">
-    <div id="persona-card">
-        <h3>🎭 xtang 的人设</h3>
-        <p>编辑 xtang 的性格、说话风格和背景故事。</p>
-        <textarea id="personaText" placeholder="例如：&#10;22岁的大学生，性格开朗温柔&#10;喜欢叫我姐姐&#10;有点天然呆但很真诚&#10;在东京读设计专业&#10;喜欢摄影和咖啡"></textarea>
-        <div class="btn-row">
-            <button class="btn-cancel" id="personaCancel">取消</button>
-            <button class="btn-save" id="personaSave">保存</button>
-        </div>
-    </div>
-</div>
-
+<!-- 重构后的底部输入区 -->
 <div id="input-area">
-    <button id="quickToggle" title="快捷短语">⚡</button>
-    <!-- 修改这里：语音按钮移到输入框旁边了 -->
-    <button id="voiceBtn" title="语音输入">🎤</button>
-    <input type="text" id="msg" placeholder="说点什么..." autocomplete="off">
+    <div class="input-wrapper" id="inputWrapper">
+        <!-- 长按触发麦克风 -->
+        <div class="mic-zone" id="micZone">🎤</div>
+        <input type="text" id="msg" placeholder="说点什么..." autocomplete="off">
+    </div>
     <button id="sendBtn">发送</button>
+</div>
+
+<div id="memory-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:100;justify-content:center;align-items:center;">
+    <div style="background:white;border-radius:16px;padding:20px;width:85%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+        <h3 style="margin:0 0 8px 0;font-size:17px;color:#333;">🧠 关于你</h3>
+        <p style="margin:0 0 10px 0;font-size:12px;color:#999;">xtang 会记住这里的所有内容。</p>
+        <textarea id="memoryText" style="width:100%;height:180px;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:14px;line-height:1.6;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;" placeholder="例如：&#10;我叫 imma&#10;在东京工作&#10;喜欢喝咖啡&#10;最近在学日语，N4 水平"></textarea>
+        <div style="display:flex;gap:10px;margin-top:12px;justify-content:flex-end;">
+            <button id="memoryCancel" style="background:#f0f0f0;color:#666;border:none;padding:8px 16px;border-radius:20px;font-size:14px;">取消</button>
+            <button id="memorySave" style="background:#07c160;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:14px;">保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="persona-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:100;justify-content:center;align-items:center;">
+    <div style="background:white;border-radius:16px;padding:20px;width:85%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+        <h3 style="margin:0 0 8px 0;font-size:17px;color:#333;">🎭 xtang 的人设</h3>
+        <p style="margin:0 0 10px 0;font-size:12px;color:#999;">编辑 xtang 的性格、说话风格和背景故事。</p>
+        <textarea id="personaText" style="width:100%;height:180px;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:14px;line-height:1.6;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;" placeholder="例如：&#10;22岁的大学生，性格开朗温柔&#10;喜欢叫我姐姐&#10;有点天然呆但很真诚&#10;在东京读设计专业&#10;喜欢摄影和咖啡"></textarea>
+        <div style="display:flex;gap:10px;margin-top:12px;justify-content:flex-end;">
+            <button id="personaCancel" style="background:#f0f0f0;color:#666;border:none;padding:8px 16px;border-radius:20px;font-size:14px;">取消</button>
+            <button id="personaSave" style="background:#07c160;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:14px;">保存</button>
+        </div>
+    </div>
 </div>
 
 <script>
     const chat = document.getElementById('chat');
     const msgInput = document.getElementById('msg');
     const sendBtn = document.getElementById('sendBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const memoryBtn = document.getElementById('memoryBtn');
-    const personaBtn = document.getElementById('personaBtn');
-    const memoryOverlay = document.getElementById('memory-overlay');
-    const memoryText = document.getElementById('memoryText');
-    const memoryCancel = document.getElementById('memoryCancel');
-    const memorySave = document.getElementById('memorySave');
-    const personaOverlay = document.getElementById('persona-overlay');
-    const personaText = document.getElementById('personaText');
-    const personaCancel = document.getElementById('personaCancel');
-    const personaSave = document.getElementById('personaSave');
-    const quickToggle = document.getElementById('quickToggle');
-    const quickReplies = document.getElementById('quick-replies');
-    const themeBtn = document.getElementById('themeBtn');
-    const voiceBtn = document.getElementById('voiceBtn');
-    const autoMsgBtn = document.getElementById('autoMsgBtn');
-    const dailyBtn = document.getElementById('dailyBtn');
+    const inputWrapper = document.getElementById('inputWrapper');
+    const micZone = document.getElementById('micZone');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const dropdown = document.getElementById('dropdown-menu');
+
     const contextMenu = document.getElementById('context-menu');
 
     const defaultPersona = `22岁的大学生，性格开朗温柔
@@ -313,11 +305,6 @@
     let themeIdx = 0;
     const savedTheme = localStorage.getItem('xtang_theme');
     if (savedTheme && themes.includes(savedTheme)) { document.body.className = savedTheme; themeIdx = themes.indexOf(savedTheme); }
-    themeBtn.onclick = () => {
-        themeIdx = (themeIdx + 1) % themes.length;
-        document.body.className = themes[themeIdx];
-        localStorage.setItem('xtang_theme', themes[themeIdx]);
-    };
 
     let apiKey = localStorage.getItem('xtang_ds_key');
     if (!apiKey) { apiKey = prompt("请输入 DeepSeek API Key："); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
@@ -358,10 +345,6 @@ ${timeStr}
     const MAX_MESSAGES = 1 + MAX_ROUNDS * 2;
     let history = [{role: 'system', content: buildSystemPrompt()}];
     let lastMessageTime = 0;
-    let autoMsgTimer = null;
-    let dailyMsgTimer = null;
-    let autoMsgEnabled = localStorage.getItem('xtang_auto_msg') === 'true';
-    let dailyMsgEnabled = localStorage.getItem('xtang_daily_msg') === 'true';
 
     const saved = localStorage.getItem('xtang_history');
     if (saved) {
@@ -371,9 +354,6 @@ ${timeStr}
             else history[0].content = buildSystemPrompt();
         } catch(e) { history = [{role: 'system', content: buildSystemPrompt()}]; }
     }
-
-    if (autoMsgEnabled) { autoMsgBtn.classList.add('active'); startAutoMsg(); }
-    if (dailyMsgEnabled) { dailyBtn.classList.add('active'); startDailyMsg(); }
 
     function renderHistory() {
         chat.innerHTML = ''; lastMessageTime = 0;
@@ -416,12 +396,10 @@ ${timeStr}
     }
     function hideTyping() { const el = document.getElementById('typing-indicator'); if (el) el.remove(); }
 
-    // ── 打字音效 ──
     function playTypingSound() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const o = ctx.createOscillator();
-            const g = ctx.createGain();
+            const o = ctx.createOscillator(); const g = ctx.createGain();
             o.type = 'triangle';
             o.frequency.setValueAtTime(800 + Math.random() * 400, ctx.currentTime);
             g.gain.setValueAtTime(0.03, ctx.currentTime);
@@ -563,129 +541,147 @@ ${timeStr}
         sendBtn.disabled = false; msgInput.disabled = false; msgInput.focus();
     }
 
-    // ── 主动消息 ──
-    function startAutoMsg() {
-        stopAutoMsg();
-        function scheduleNext() {
-            const delay = 10 * 60 * 1000 + Math.random() * 10 * 60 * 1000;
-            autoMsgTimer = setTimeout(() => {
-                const prompt = `[现在是${getCurrentTimeString()}，你主动给正在聊天的人发一条消息。内容要自然，像突然想到对方一样。可以是一个小日常、一句关心、一个有趣的想法。记住一次只能说一句话。]`;
-                sendMessage('', true, prompt);
-                scheduleNext();
-            }, delay);
-        }
-        scheduleNext();
-    }
-    function stopAutoMsg() {
-        if (autoMsgTimer) { clearTimeout(autoMsgTimer); autoMsgTimer = null; }
-    }
-
-    autoMsgBtn.onclick = () => {
-        autoMsgEnabled = !autoMsgEnabled;
-        localStorage.setItem('xtang_auto_msg', autoMsgEnabled);
-        if (autoMsgEnabled) {
-            autoMsgBtn.classList.add('active');
-            startAutoMsg();
-            showToast('主动消息已开启 🔔');
-        } else {
-            autoMsgBtn.classList.remove('active');
-            stopAutoMsg();
-            showToast('主动消息已关闭');
-        }
-    };
-
-    // ── 每日一句 ──
-    function startDailyMsg() {
-        stopDailyMsg();
-        function scheduleDaily() {
-            const now = new Date();
-            const next = new Date(now);
-            next.setHours(8, 0, 0, 0);
-            if (now >= next) next.setDate(next.getDate() + 1);
-            const delay = next.getTime() - now.getTime();
-            dailyMsgTimer = setTimeout(() => {
-                const prompt = `[现在是早晨。请给对方发一条日语学习句子，要简短实用。格式：先用日语写一句话，然后括号里用中文解释意思。例如：「今日も一日頑張ろうね！☀️（今天也要加油哦！☀️）」记住一次只能说一句话。]`;
-                sendMessage('', true, prompt);
-                scheduleDaily();
-            }, delay);
-        }
-        scheduleDaily();
-    }
-    function stopDailyMsg() {
-        if (dailyMsgTimer) { clearTimeout(dailyMsgTimer); dailyMsgTimer = null; }
-    }
-
-    dailyBtn.onclick = () => {
-        dailyMsgEnabled = !dailyMsgEnabled;
-        localStorage.setItem('xtang_daily_msg', dailyMsgEnabled);
-        if (dailyMsgEnabled) {
-            dailyBtn.classList.add('active');
-            startDailyMsg();
-            showToast('每日一句已开启 📖（每天早上8点）');
-        } else {
-            dailyBtn.classList.remove('active');
-            stopDailyMsg();
-            showToast('每日一句已关闭');
-        }
-    };
-
     function showToast(msg) {
         const toast = document.createElement('div'); toast.className = 'copy-toast';
         toast.textContent = msg; document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 1500);
     }
 
-    // ── 语音输入 (移到了下面) ──
-    voiceBtn.onclick = () => {
+    // ===== 隐藏的设置菜单逻辑 =====
+    settingsBtn.onclick = () => {
+        dropdown.classList.toggle('show');
+    };
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && e.target !== settingsBtn) {
+            dropdown.classList.remove('show');
+        }
+    });
+
+    document.getElementById('dropTheme').onclick = () => {
+        themeIdx = (themeIdx + 1) % themes.length;
+        document.body.className = themes[themeIdx];
+        localStorage.setItem('xtang_theme', themes[themeIdx]);
+        dropdown.classList.remove('show');
+    };
+
+    document.getElementById('dropPersona').onclick = () => {
+        document.getElementById('personaText').value = getUserPersona();
+        document.getElementById('persona-overlay').style.display = 'flex';
+        dropdown.classList.remove('show');
+    };
+    document.getElementById('personaCancel').onclick = () => document.getElementById('persona-overlay').style.display = 'none';
+    document.getElementById('personaSave').onclick = () => {
+        localStorage.setItem('xtang_persona', document.getElementById('personaText').value.trim());
+        history[0].content = buildSystemPrompt();
+        document.getElementById('persona-overlay').style.display = 'none';
+        showToast('人设已保存 ✨');
+    };
+
+    document.getElementById('dropMemory').onclick = () => {
+        document.getElementById('memoryText').value = getUserMemory();
+        document.getElementById('memory-overlay').style.display = 'flex';
+        dropdown.classList.remove('show');
+    };
+    document.getElementById('memoryCancel').onclick = () => document.getElementById('memory-overlay').style.display = 'none';
+    document.getElementById('memorySave').onclick = () => {
+        localStorage.setItem('xtang_memory', document.getElementById('memoryText').value.trim());
+        history[0].content = buildSystemPrompt();
+        document.getElementById('memory-overlay').style.display = 'none';
+        showToast('记忆已保存 ✨');
+    };
+
+    document.getElementById('dropClear').onclick = () => {
+        if (confirm('确定要清空所有聊天记录吗？AI 会重新打招呼。')) {
+            history = [{role: 'system', content: buildSystemPrompt()}];
+            localStorage.setItem('xtang_history', JSON.stringify(history));
+            renderHistory();
+        }
+        dropdown.classList.remove('show');
+    };
+
+    // ===== 消息发送逻辑 =====
+    msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
+    sendBtn.onclick = () => send();
+
+    // ===== 核心：长按输入框左侧(🎤) 触发语音 =====
+    let pressTimer = null;
+    let isPressing = false;
+
+    function startVoiceRecording(e) {
+        if (isPressing) return;
+        isPressing = true;
+
+        // 启动震动反馈(如手机支持)
+        if (navigator.vibrate) navigator.vibrate(30);
+
+        micZone.classList.add('recording');
+        showToast('🎙️ 按住说话...松开即发送');
+
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             const rec = new SpeechRecognition();
             rec.lang = 'ja-JP';
             rec.interimResults = false;
             rec.maxAlternatives = 1;
-            rec.onstart = () => showToast('🎙️ 正在听...');
-            rec.onresult = (e) => { send(e.results[0][0].transcript); };
-            rec.onerror = () => showToast('语音识别失败，请手动输入');
+
+            rec.onresult = (e) => {
+                const transcript = e.results[0][0].transcript;
+                if(transcript.trim()) send(transcript);
+            };
+            rec.onerror = () => {
+                showToast('语音识别失败，请手动输入');
+                micZone.classList.remove('recording');
+                isPressing = false;
+            };
+            rec.onend = () => {
+                micZone.classList.remove('recording');
+                isPressing = false;
+            };
             rec.start();
+            
+            // 保存识别器，以便如果用户提前松手可以停止它
+            micZone._rec = rec; 
         } else {
             showToast('你的浏览器不支持语音输入');
+            micZone.classList.remove('recording');
+            isPressing = false;
         }
-    };
+    }
 
-    msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
-    sendBtn.onclick = () => send();
+    function stopVoiceRecording() {
+        if (!isPressing) return;
+        isPressing = false;
+        micZone.classList.remove('recording');
+        
+        if (micZone._rec) {
+            try {
+                micZone._rec.stop();
+                micZone._rec = null;
+            } catch(e) {}
+        }
+    }
 
-    quickToggle.onclick = () => quickReplies.classList.toggle('open');
-    quickReplies.querySelectorAll('.quick-tag').forEach(tag => {
-        tag.addEventListener('click', () => { send(tag.dataset.text); quickReplies.classList.remove('open'); });
+    // 监听触摸事件(移动端)
+    micZone.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // 避免触发键盘或者滚动
+        startVoiceRecording(e);
+    });
+    micZone.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        stopVoiceRecording();
+    });
+    micZone.addEventListener('touchcancel', (e) => {
+        e.preventDefault();
+        stopVoiceRecording();
     });
 
-    clearBtn.onclick = () => {
-        if (confirm('确定要清空所有聊天记录吗？AI 会重新打招呼。')) {
-            history = [{role: 'system', content: buildSystemPrompt()}];
-            localStorage.setItem('xtang_history', JSON.stringify(history));
-            renderHistory();
-        }
-    };
+    // 监听鼠标事件(PC端测试用)
+    micZone.addEventListener('mousedown', startVoiceRecording);
+    micZone.addEventListener('mouseup', stopVoiceRecording);
+    micZone.addEventListener('mouseleave', stopVoiceRecording);
 
-    memoryBtn.onclick = () => { memoryText.value = getUserMemory(); memoryOverlay.classList.add('show'); };
-    memoryCancel.onclick = () => memoryOverlay.classList.remove('show');
-    memorySave.onclick = () => {
-        localStorage.setItem('xtang_memory', memoryText.value.trim());
-        history[0].content = buildSystemPrompt();
-        memoryOverlay.classList.remove('show');
-        showToast('记忆已保存 ✨');
-    };
 
-    personaBtn.onclick = () => { personaText.value = getUserPersona(); personaOverlay.classList.add('show'); };
-    personaCancel.onclick = () => personaOverlay.classList.remove('show');
-    personaSave.onclick = () => {
-        localStorage.setItem('xtang_persona', personaText.value.trim());
-        history[0].content = buildSystemPrompt();
-        personaOverlay.classList.remove('show');
-        showToast('人设已保存 ✨');
-    };
-
+    // 启动界面
     renderHistory();
 </script>
 </body>
