@@ -30,28 +30,9 @@
         #header {
             position: fixed; top: 0; left: 0; right: 0; height: 44px;
             background: #f7f7f7; border-bottom: 1px solid #dcdcdc;
-            display: flex; align-items: center; padding: 0 14px; z-index: 11; gap: 10px;
+            display: flex; align-items: center; justify-content: flex-end; /* 靠右对齐 */
+            padding: 0 10px; z-index: 11; gap: 8px;
         }
-        #header .avatar {
-            width: 32px; height: 32px; border-radius: 50%;
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px; flex-shrink: 0; position: relative;
-            cursor: pointer; transition: transform 0.15s ease;
-        }
-        #header .avatar:active { transform: scale(0.85); }
-        #header .name { font-size: 15px; font-weight: 600; color: #333; }
-        #header .persona-badge {
-            font-size: 11px; color: #888; background: #e8e8e8;
-            padding: 2px 8px; border-radius: 10px; margin-left: 4px;
-        }
-        .unread-dot {
-            display: none;
-            position: absolute; top: -2px; right: -2px;
-            width: 10px; height: 10px; border-radius: 50%;
-            background: #ef4444; border: 1.5px solid white;
-        }
-        .unread-dot.show { display: block; }
 
         #chat {
             position: fixed; top: 44px; left: 0; right: 0; bottom: 50px;
@@ -189,8 +170,10 @@
         }
 
         #top-bar {
-            position: fixed; top: 48px; right: 10px; z-index: 11;
-            display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end;
+            /* 删除之前的固定定位，现在它会在 Header 内部 */
+            display: flex;
+            gap: 4px;
+            align-items: center;
         }
         .top-btn {
             background: rgba(255,255,255,0.8); border: none;
@@ -234,13 +217,17 @@
 </head>
 <body class="theme-light">
 
+<!-- 修改这里：移除了头像和姓名，只留右侧的按钮，让顶部更干净 -->
 <div id="header">
-    <div class="avatar" id="avatarArea">
-        🐶
-        <div class="unread-dot" id="unreadDot"></div>
+    <div id="top-bar">
+        <button class="top-btn" id="dailyBtn" title="每日一句">📖</button>
+        <button class="top-btn" id="autoMsgBtn" title="主动消息">🔔</button>
+        <button class="top-btn" id="voiceBtn" title="语音输入">🎙️</button>
+        <button class="top-btn" id="personaBtn">人设</button>
+        <button class="top-btn" id="themeBtn">🎨</button>
+        <button class="top-btn" id="memoryBtn">记忆</button>
+        <button class="top-btn" id="clearBtn">清空</button>
     </div>
-    <span class="name">xtang</span>
-    <span class="persona-badge" id="personaBadge">年下彼氏</span>
 </div>
 
 <div id="chat"></div>
@@ -257,16 +244,6 @@
     <button class="quick-tag" data-text="そうなんだ">そうなんだ</button>
     <button class="quick-tag" data-text="ごめんね">ごめんね</button>
     <button class="quick-tag" data-text="また後でね">また後でね</button>
-</div>
-
-<div id="top-bar">
-    <button class="top-btn" id="dailyBtn" title="每日一句">📖</button>
-    <button class="top-btn" id="autoMsgBtn" title="主动消息">🔔</button>
-    <button class="top-btn" id="voiceBtn" title="语音输入">🎙️</button>
-    <button class="top-btn" id="personaBtn">人设</button>
-    <button class="top-btn" id="themeBtn">🎨</button>
-    <button class="top-btn" id="memoryBtn">记忆</button>
-    <button class="top-btn" id="clearBtn">清空</button>
 </div>
 
 <div id="memory-overlay">
@@ -314,17 +291,15 @@
     const personaText = document.getElementById('personaText');
     const personaCancel = document.getElementById('personaCancel');
     const personaSave = document.getElementById('personaSave');
-    const personaBadge = document.getElementById('personaBadge');
     const quickToggle = document.getElementById('quickToggle');
     const quickReplies = document.getElementById('quick-replies');
     const themeBtn = document.getElementById('themeBtn');
     const voiceBtn = document.getElementById('voiceBtn');
     const autoMsgBtn = document.getElementById('autoMsgBtn');
     const dailyBtn = document.getElementById('dailyBtn');
-    const unreadDot = document.getElementById('unreadDot');
     const contextMenu = document.getElementById('context-menu');
-    const avatarArea = document.getElementById('avatarArea');
 
+    // 默认人设保持不变
     const defaultPersona = `22岁的大学生，性格开朗温柔
 喜欢叫对方"姐姐"
 有点天然呆但很真诚
@@ -350,12 +325,6 @@
 
     function getUserMemory() { return localStorage.getItem('xtang_memory') || ''; }
     function getUserPersona() { return localStorage.getItem('xtang_persona') || defaultPersona; }
-
-    function updatePersonaBadge() {
-        const persona = getUserPersona();
-        const firstLine = persona.split('\n')[0].trim();
-        personaBadge.textContent = firstLine.length <= 10 ? firstLine : firstLine.substring(0, 8) + '…';
-    }
 
     function getCurrentTimeString() {
         const now = new Date();
@@ -513,16 +482,8 @@ ${timeStr}
         const wasNearBottom = isNearBottom();
         requestAnimationFrame(() => { if (wasNearBottom) chat.scrollTop = chat.scrollHeight; });
 
-        if (role === 'ai' && !wasNearBottom) {
-            unreadDot.classList.add('show');
-        }
-
         return div;
     }
-
-    chat.addEventListener('scroll', () => {
-        if (isNearBottom()) unreadDot.classList.remove('show');
-    });
 
     contextMenu.querySelectorAll('.menu-item').forEach(item => {
         item.addEventListener('click', () => {
@@ -669,26 +630,6 @@ ${timeStr}
         }
     };
 
-    // ── 摸头/拍一拍 ──
-    avatarArea.addEventListener('dblclick', () => {
-        const responses = [
-            'えへへ、何？急に撫でないでよ…ちょっと照れるじゃん🥺',
-            'わっ！びっくりした！でも…もうちょっと撫でて？(≧▽≦)',
-            'ん？どうしたの急に？何かいいことあった？😊',
-            'もう、撫でるの好きだね！でも嫌じゃないよ✨',
-            'ふふ、撫でられるの結構好きかも…内緒だけど💕',
-            'えっ、今の何？もしかして褒めてる？ありがと！😆',
-            'ちょっと！急にそんなことされたらドキドキするじゃん…💓',
-            'なに？寂しくなった？大丈夫、ここにいるよ🥰'
-        ];
-        const randomReply = responses[Math.floor(Math.random() * responses.length)];
-        playTypingSound();
-        addBubble('ai', randomReply);
-        history.push({role: 'assistant', content: randomReply});
-        saveHistory();
-        playChime();
-    });
-
     function showToast(msg) {
         const toast = document.createElement('div'); toast.className = 'copy-toast';
         toast.textContent = msg; document.body.appendChild(toast);
@@ -712,9 +653,45 @@ ${timeStr}
         }
     };
 
+    // 删除了 双机头像摸头 的功能
+
     msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
     sendBtn.onclick = () => send();
 
     quickToggle.onclick = () => quickReplies.classList.toggle('open');
     quickReplies.querySelectorAll('.quick-tag').forEach(tag => {
-        tag.addEventListener('click', () => { send(tag.dataset
+        tag.addEventListener('click', () => { send(tag.dataset.text); quickReplies.classList.remove('open'); });
+    });
+
+    clearBtn.onclick = () => {
+        if (confirm('确定要清空所有聊天记录吗？AI 会重新打招呼。')) {
+            history = [{role: 'system', content: buildSystemPrompt()}];
+            localStorage.setItem('xtang_history', JSON.stringify(history));
+            renderHistory();
+        }
+    };
+
+    // 记忆和人设的保存逻辑保持不变
+    memoryBtn.onclick = () => { memoryText.value = getUserMemory(); memoryOverlay.classList.add('show'); };
+    memoryCancel.onclick = () => memoryOverlay.classList.remove('show');
+    memorySave.onclick = () => {
+        localStorage.setItem('xtang_memory', memoryText.value.trim());
+        history[0].content = buildSystemPrompt();
+        memoryOverlay.classList.remove('show');
+        showToast('记忆已保存 ✨');
+    };
+
+    personaBtn.onclick = () => { personaText.value = getUserPersona(); personaOverlay.classList.add('show'); };
+    personaCancel.onclick = () => personaOverlay.classList.remove('show');
+    personaSave.onclick = () => {
+        localStorage.setItem('xtang_persona', personaText.value.trim());
+        history[0].content = buildSystemPrompt();
+        personaOverlay.classList.remove('show');
+        showToast('人设已保存 ✨');
+    };
+
+    // 启动界面
+    renderHistory();
+</script>
+</body>
+</html>
