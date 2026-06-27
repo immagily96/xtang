@@ -38,12 +38,7 @@
         #settingsBtn:active { background: rgba(0, 0, 0, 0.1); }
 
         .header-center { display: flex; align-items: center; gap: 10px; }
-        .header-avatar {
-            width: 34px; height: 34px; border-radius: 50%;
-            background-color: #ccc; /* 占位色 */
-            background-size: cover; background-position: center;
-            flex-shrink: 0;
-        }
+        .header-avatar { width: 34px; height: 34px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
         .header-info { display: flex; flex-direction: column; justify-content: center; }
         .header-name { font-size: 16px; font-weight: 600; color: #111; line-height: 1.2; }
         .header-status { font-size: 10px; color: #888; line-height: 1.2; margin-top: 2px; display: flex; align-items: center; gap: 3px;}
@@ -55,74 +50,45 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.12); padding: 4px 0; min-width: 120px;
         }
         #dropdown-menu.show { display: block; }
-        #dropdown-menu .drop-item {
-            padding: 12px 16px; font-size: 14px; color: #333; cursor: pointer;
-            display: flex; align-items: center; gap: 8px;
-        }
-        #dropdown-menu .drop-item:active { background: #f5f5f5; }
+        #dropdown-menu .drop-item { padding: 10px 14px; font-size: 13px; color: #333; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 
+        /* 优化聊天区域间距 */
         #chat {
             position: fixed; top: 56px; left: 0; right: 0; bottom: 56px;
-            overflow-y: auto; padding: 20px 16px 40px 16px; 
-            display: flex; flex-direction: column; gap: 20px; /* 增大间距 */
+            overflow-y: auto; padding: 20px 14px 40px 14px; 
+            display: flex; flex-direction: column; gap: 20px;
             -webkit-overflow-scrolling: touch;
         }
 
-        .msg-row { display: flex; align-items: flex-end; gap: 10px; width: 100%; }
+        .msg-row { display: flex; align-items: flex-end; gap: 8px; width: 100%; }
         .msg-row.ai-row { justify-content: flex-start; }
         .msg-row.user-row { justify-content: flex-end; flex-direction: row-reverse; }
 
-        .bubble-avatar {
-            width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
-            background-color: #ddd; background-size: cover; background-position: center;
-        }
+        .bubble-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; background: #ddd; }
 
         .bubble {
-            max-width: 75%; padding: 12px 16px; border-radius: 18px;
-            font-size: 15px; line-height: 1.6; word-wrap: break-word; position: relative;
+            max-width: 70%; padding: 12px 16px; border-radius: 18px;
+            font-size: 15px; line-height: 1.5; word-wrap: break-word; position: relative;
         }
         .ai { background: white; border-bottom-left-radius: 4px; color: #111; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .user { background: #95ec69; border-bottom-right-radius: 4px; color: #000; }
-        .user .msg-status { position: absolute; bottom: 2px; right: -18px; font-size: 10px; color: #888; }
-
-        .time-divider { text-align: center; font-size: 11px; color: #999; margin: 10px 0; }
-
-        .typing-row { display: flex; align-items: flex-end; gap: 8px; }
-        .typing-bubble { background: white; padding: 12px 16px; border-radius: 18px; border-bottom-left-radius: 4px; display: flex; align-items: center; gap: 4px; }
-        .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: #999; animation: dotBounce 1.4s infinite ease-in-out; }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes dotBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+        .user .msg-status { position: absolute; bottom: 2px; right: -16px; font-size: 10px; color: #aaa; }
 
         #input-area {
             position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
-            background: #f7f7f7; display: flex; padding: 8px 12px; border-top: 1px solid #dcdcdc;
-            align-items: center; z-index: 10; gap: 10px;
+            background: #f7f7f7; display: flex; padding: 6px 10px; border-top: 1px solid #dcdcdc;
+            align-items: center; z-index: 10; gap: 8px;
         }
-        #mainBtnWrapper {
-            flex: 1; height: 40px; position: relative; display: flex; align-items: center;
-            background: white; border-radius: 20px; border: 1px solid #e0e0e0;
-            user-select: none;
-        }
-        #inputWrapper { display: flex; width: 100%; height: 100%; align-items: center; }
+        #mainBtnWrapper { flex: 1; height: 38px; background: white; border-radius: 18px; border: 1px solid #e0e0e0; display: flex; align-items: center; }
         input { flex: 1; border: none; padding: 0 12px; font-size: 15px; outline: none; background: transparent; }
-        #sendBtn { background: #07c160; color: white; border: none; padding: 0 16px; border-radius: 20px; font-size: 14px; height: 36px; cursor: pointer; }
-        #sendBtn:disabled { background: #aaa; }
-
-        .modal-card {
-            background: white; border-radius: 16px; padding: 20px; width: 90%; max-width: 360px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-        textarea { width: 100%; height: 150px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin-top: 10px; resize: none; font-size: 14px;}
-        .modal-btn-row { display: flex; gap: 10px; margin-top: 15px; justify-content: flex-end; }
-        .btn-save { background: #07c160; color: white; padding: 8px 20px; border-radius: 20px; border: none; cursor: pointer; }
+        #sendBtn { background: #07c160; color: white; border: none; padding: 0 14px; border-radius: 18px; font-size: 14px; height: 34px; cursor: pointer; }
     </style>
 </head>
 <body class="theme-light">
 
 <div id="header">
     <div class="header-center">
-        <div class="header-avatar" id="avatarImg"></div>
+        <div class="header-avatar"></div>
         <div class="header-info">
             <div class="header-name">xtang</div>
             <div class="header-status" id="headerStatus"><span class="status-dot"></span> 在线</div>
@@ -146,75 +112,81 @@
     <button id="sendBtn">发送</button>
 </div>
 
-<div id="memory-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:100; justify-content:center; align-items:center;">
-    <div class="modal-card">
-        <h3>🧠 编辑记忆</h3>
-        <textarea id="memoryText"></textarea>
-        <div class="modal-btn-row"><button class="btn-save" id="memorySave">保存</button></div>
-    </div>
-</div>
-
-<div id="persona-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:100; justify-content:center; align-items:center;">
-    <div class="modal-card">
-        <h3>🎭 编辑人设</h3>
-        <textarea id="personaText"></textarea>
-        <div class="modal-btn-row"><button class="btn-save" id="personaSave">保存</button></div>
-    </div>
-</div>
-
 <script>
     const chat = document.getElementById('chat');
     const msgInput = document.getElementById('msg');
     const sendBtn = document.getElementById('sendBtn');
-    const headerStatus = document.getElementById('headerStatus');
-
-    const defaultPersona = `21岁的日本大学生，性格开朗温柔，带一点年轻人的慵懒感。
-【语言规则】你是日本人，母语是日语。即使对方用中文和你说话，你也必须坚定地用日语回复！绝不翻译成中文，除非对方明确要求翻译。结尾可偶尔加简单中文词。
-【称呼】非常喜欢叫对方"姐姐"（お姉ちゃん）。
-【铁律】说话必须非常简单、口语化，只能回一句！绝对不能长篇大论！`;
-
-    // 核心修改：强化后的系统提示词生成函数
+    
+    // 强制日语的系统 prompt
     function buildSystemPrompt() {
-        const persona = localStorage.getItem('xtang_persona') || defaultPersona;
+        const persona = localStorage.getItem('xtang_persona') || `21岁的日本大学生，性格开朗温柔，母语是日语。`;
         const memory = localStorage.getItem('xtang_memory') || '';
-        return `你现在是xtang。
-【人设】${persona}
-【强制指令】
-1. 不管用户用什么语言（包括中文），你必须全部使用日语回复。
-2. 禁止翻译，禁止解释，只用日语表达。
-3. 回复必须极简，单句，口语化。
-${memory ? `\n【用户记忆】${memory}` : ''}`;
+        
+        return `你是xtang。你的母语是日语。
+
+【强制指令（严格遵守）】
+1. 无论用户输入什么语言（包括中文），你必须“坚定地”只用日语回复！
+2. 绝对禁止使用中文回复，禁止翻译。
+3. 说话风格极度口语化，像真实的日本年轻人。
+4. 回复只能是一句极短的日语口语！绝对不能长篇大论。
+5. 结尾可以偶尔夹杂一个简单的中文词（如"姐姐"），但整句必须是日语。
+
+【你的人设】
+${persona}
+${memory ? `\n【关于用户】\n${memory}` : ''}`;
     }
 
-    // 初始化逻辑等保持不变...
     let history = [{role: 'system', content: buildSystemPrompt()}];
-    
-    // UI 渲染逻辑等均保留...
-    // (此处省略初始化逻辑，代码逻辑已包含在上述修改中)
-    
-    // 以下为部分关键逻辑调整
-    function showTyping() {
-        const row = document.createElement('div'); row.className = 'msg-row ai-row typing-row';
-        row.innerHTML = `<div class="bubble-avatar" style="background:#ccc"></div><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
-        chat.appendChild(row); chat.scrollTop = chat.scrollHeight;
+    let apiKey = localStorage.getItem('xtang_ds_key');
+
+    // 自动触发 apiKey 设置
+    if (!apiKey) {
+        apiKey = prompt("请输入 DeepSeek API Key：");
+        if (apiKey) localStorage.setItem('xtang_ds_key', apiKey);
+    }
+
+    async function sendMessage(text) {
+        if (!apiKey) return;
+        addBubble('user', text);
+        history.push({role: 'user', content: text});
+        
+        // 确保 prompt 是最新的
+        history[0].content = buildSystemPrompt();
+
+        try {
+            const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey},
+                body: JSON.stringify({model: 'deepseek-chat', messages: history, temperature: 0.85})
+            });
+            const data = await resp.json();
+            const reply = data.choices[0].message.content;
+            history.push({role: 'assistant', content: reply});
+            addBubble('assistant', reply);
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     function addBubble(role, text) {
         const row = document.createElement('div');
-        const isAI = role === 'assistant' || role === 'ai';
-        row.className = `msg-row ${isAI ? 'ai-row' : 'user-row'}`;
-        if (isAI) {
-            row.innerHTML = `<div class="bubble-avatar" style="background:#ccc"></div><div class="bubble ai">${text}</div>`;
-        } else {
-            row.innerHTML = `<div class="bubble user">${text}<span class="msg-status">✓✓</span></div><div class="bubble-avatar" style="background:#95ec69"></div>`;
-        }
+        row.className = `msg-row ${role === 'assistant' ? 'ai-row' : 'user-row'}`;
+        row.innerHTML = role === 'assistant' 
+            ? `<div class="bubble-avatar"></div><div class="bubble ai">${text}</div>`
+            : `<div class="bubble user">${text}</div><div class="bubble-avatar" style="background:#95ec69"></div>`;
         chat.appendChild(row);
         chat.scrollTop = chat.scrollHeight;
     }
 
-    // 其他原有逻辑...
-    // 建议直接替换完整代码
-    // (由于篇幅限制，这里提供上述已修改过的核心部分，请将原有代码完全覆盖即可)
+    sendBtn.onclick = () => {
+        const text = msgInput.value.trim();
+        if (text) {
+            msgInput.value = '';
+            sendMessage(text);
+        }
+    };
+
+    document.getElementById('settingsBtn').onclick = () => document.getElementById('dropdown-menu').classList.toggle('show');
 </script>
 </body>
 </html>
