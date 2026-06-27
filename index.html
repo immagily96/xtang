@@ -30,7 +30,7 @@
         #header {
             position: fixed; top: 0; left: 0; right: 0; height: 44px;
             background: #f7f7f7; border-bottom: 1px solid #dcdcdc;
-            display: flex; align-items: center; justify-content: flex-end; /* 靠右对齐 */
+            display: flex; align-items: center; justify-content: flex-end;
             padding: 0 10px; z-index: 11; gap: 8px;
         }
 
@@ -164,16 +164,16 @@
             white-space: nowrap; cursor: pointer;
         }
         button:disabled { background: #aaa; }
-        #quickToggle {
-            background: #f0f0f0; color: #666; font-size: 14px;
-            padding: 6px 8px; border-radius: 16px;
+        
+        /* 底部功能按钮统一样式 */
+        #quickToggle, #voiceBtn {
+            background: #f0f0f0; color: #555; font-size: 14px;
+            padding: 6px 8px; border-radius: 16px; border: none; cursor: pointer;
         }
+        #voiceBtn:active, #quickToggle:active { background: #e0e0e0; }
 
         #top-bar {
-            /* 删除之前的固定定位，现在它会在 Header 内部 */
-            display: flex;
-            gap: 4px;
-            align-items: center;
+            display: flex; gap: 4px; align-items: center;
         }
         .top-btn {
             background: rgba(255,255,255,0.8); border: none;
@@ -217,12 +217,10 @@
 </head>
 <body class="theme-light">
 
-<!-- 修改这里：移除了头像和姓名，只留右侧的按钮，让顶部更干净 -->
 <div id="header">
     <div id="top-bar">
         <button class="top-btn" id="dailyBtn" title="每日一句">📖</button>
         <button class="top-btn" id="autoMsgBtn" title="主动消息">🔔</button>
-        <button class="top-btn" id="voiceBtn" title="语音输入">🎙️</button>
         <button class="top-btn" id="personaBtn">人设</button>
         <button class="top-btn" id="themeBtn">🎨</button>
         <button class="top-btn" id="memoryBtn">记忆</button>
@@ -272,6 +270,8 @@
 
 <div id="input-area">
     <button id="quickToggle" title="快捷短语">⚡</button>
+    <!-- 修改这里：语音按钮移到输入框旁边了 -->
+    <button id="voiceBtn" title="语音输入">🎤</button>
     <input type="text" id="msg" placeholder="说点什么..." autocomplete="off">
     <button id="sendBtn">发送</button>
 </div>
@@ -299,7 +299,6 @@
     const dailyBtn = document.getElementById('dailyBtn');
     const contextMenu = document.getElementById('context-menu');
 
-    // 默认人设保持不变
     const defaultPersona = `22岁的大学生，性格开朗温柔
 喜欢叫对方"姐姐"
 有点天然呆但很真诚
@@ -636,7 +635,7 @@ ${timeStr}
         setTimeout(() => toast.remove(), 1500);
     }
 
-    // ── 语音输入 ──
+    // ── 语音输入 (移到了下面) ──
     voiceBtn.onclick = () => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -652,8 +651,6 @@ ${timeStr}
             showToast('你的浏览器不支持语音输入');
         }
     };
-
-    // 删除了 双机头像摸头 的功能
 
     msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
     sendBtn.onclick = () => send();
@@ -671,7 +668,6 @@ ${timeStr}
         }
     };
 
-    // 记忆和人设的保存逻辑保持不变
     memoryBtn.onclick = () => { memoryText.value = getUserMemory(); memoryOverlay.classList.add('show'); };
     memoryCancel.onclick = () => memoryOverlay.classList.remove('show');
     memorySave.onclick = () => {
@@ -690,7 +686,6 @@ ${timeStr}
         showToast('人设已保存 ✨');
     };
 
-    // 启动界面
     renderHistory();
 </script>
 </body>
