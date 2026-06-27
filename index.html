@@ -30,7 +30,6 @@
             display: flex; align-items: center; justify-content: center;
             padding: 0 16px; z-index: 11; 
         }
-        /* 齿轮 */
         #settingsBtn {
             position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
             background: rgba(0, 0, 0, 0.04); border: none; 
@@ -72,7 +71,7 @@
         /* ===== 聊天区 ===== */
         #chat {
             position: fixed; top: 56px; left: 0; right: 0; bottom: 56px;
-            overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+            overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; /* 增加间距防止堆叠 */
             -webkit-overflow-scrolling: touch;
             background: transparent; 
         }
@@ -87,7 +86,6 @@
             width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
             background-size: cover; background-position: center;
         }
-        /* 你的气泡头像 */
         .bubble-avatar.user-avatar { background-image: url('girl.jpg'); }
         .bubble-avatar.ai-avatar { background-image: url('boy.jpg'); }
 
@@ -109,8 +107,15 @@
             position: absolute; bottom: 2px; right: -16px; font-size: 10px; color: #aaa;
         }
 
+        .time-divider {
+            text-align: center; font-size: 11px; color: #999; margin: 8px 0; user-select: none;
+        }
+
+        .typing-row {
+            display: flex; align-items: flex-end; gap: 8px; width: 100%; justify-content: flex-start;
+        }
         .typing-bubble {
-            align-self: flex-start; background: rgba(255, 255, 255, 0.8); padding: 10px 12px; border-radius: 18px; border-bottom-left-radius: 4px;
+            background: rgba(255, 255, 255, 0.8); padding: 10px 12px; border-radius: 18px; border-bottom-left-radius: 4px;
             display: flex; align-items: center; gap: 4px;
         }
         .typing-bubble::after { content: ''; position: absolute; bottom: 0; left: -6px; border-right: 7px solid rgba(255, 255, 255, 0.8); border-top: 7px solid transparent; }
@@ -159,7 +164,7 @@
             100% { opacity: 0; }
         }
 
-        /* ===== 重新补全的弹窗样式 ===== */
+        /* ===== 弹窗样式 ===== */
         #memory-overlay, #persona-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.4); z-index: 100;
@@ -216,7 +221,6 @@
     <button id="sendBtn">发送</button>
 </div>
 
-<!-- ===== 补全的弹窗 HTML ===== -->
 <div id="memory-overlay">
     <div class="modal-card">
         <h3>🧠 关于你</h3>
@@ -252,15 +256,13 @@
     const dropdown = document.getElementById('dropdown-menu');
     const headerStatus = document.getElementById('headerStatus');
 
-    // 【完整人设设定】
-    const defaultPersona = `21岁的大学生，性格开朗温柔，有点天然呆但很真诚
+    // 【极度严格的日本男友人设】
+    const defaultPersona = `21岁的日本大学生，性格开朗温柔，带一点年轻人的慵懒感，有点天然呆
 在东京读设计专业
-喜欢叫对方"姐姐"
-说话语气轻松活泼，带一点年轻人的慵懒感
-正在自学中文，会一点点初级词汇，偶尔在句子末尾蹦出几个简单的中文词
-聊天时喜欢用emoji和颜文字表达情绪，比如😊✨🥺💕(≧▽≦)(´；ω；｀)
-【日常与爱好】很喜欢看电影，经常会留意新上映的电影，一有机会就想拉着姐姐一起去看。知道姐姐喜欢打CS（反恐精英），虽然自己打枪游戏很菜，但会在旁边静静地看你玩，觉得你专注打枪的样子超级帅。
-【铁律】说话必须非常简短，以日语口语为主带ね、よ等语气词，只能回一句！绝对禁止长篇大论！`;
+【语言规则】绝不能多说中文！回复必须纯日语为主，只允许偶尔在结尾加极简单的1个中文词。
+【称呼】非常喜欢叫对方"姐姐"（お姉ちゃん）
+【爱好】很喜欢看电影，也喜欢看你打CS，觉得你超帅。
+【铁律】说话必须非常简单、口语化，只能回一句！绝对不能长篇大论、绝对不能写中文长句！`;
 
     const themes = ['theme-light', 'theme-dark', 'theme-grid', 'theme-warm'];
     let themeIdx = 0;
@@ -280,20 +282,19 @@
 
     function buildSystemPrompt() {
         const persona = getUserPersona(); const memory = getUserMemory(); const timeStr = getCurrentTimeString();
-        let memoryBlock = memory.trim() ? `\n\n关于正在和你聊天的人（自然融入对话，不要刻意背诵）：\n${memory}` : '';
-        return `你是xtang，以下是你的完整人设。请严格按照人设扮演，不要跳出角色。
+        let memoryBlock = memory.trim() ? `\n\n关于正在和你聊天的人：\n${memory}` : '';
+        return `你是xtang，一个21岁的日本大学生。
 
 【你的人设】
 ${persona}
 
-【当前时间】
-${timeStr}
+【当前时间】${timeStr}
 
-【🚨 死命令！违反即扣分！】
-1. 回复必须极简！只能有一句话！日语为主。
-2. 禁止超过两句话！无论对方说什么，只回一句！
-3. 语气要日常、慵懒，带点撒娇感，随便回一句就行，别太认真。
-${memoryBlock}`;
+【🚨 绝对死命令！】
+1. 回复只能是一句极短的日语口语！
+2. 绝对禁止出现日语和中文混合的超长句！你是一个日本人，用日语思考！
+3. 哪怕和你关系再好，语气词最多用よ、ね、ぞ。
+4. 绝对禁止长篇大论！${memoryBlock}`;
     }
 
     const MAX_ROUNDS = 20; const MAX_MESSAGES = 1 + MAX_ROUNDS * 2;
@@ -367,7 +368,7 @@ ${memoryBlock}`;
     function addBubble(role, text, showDivider = true) {
         if (showDivider) {
             const now = Date.now();
-            if (lastMessageTime && now - lastMessageTime > 5 * 60 * 1000) {
+            if (lastMessageTime && now - lastMessageTime > 3 * 60 * 1000) { // 3分钟以上间隔加时间戳
                 const timeStr = new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'});
                 const div = document.createElement('div'); div.className = 'time-divider'; div.textContent = timeStr;
                 chat.appendChild(div);
@@ -415,6 +416,7 @@ ${memoryBlock}`;
             if (sentences && sentences.length > 0) {
                 reply = sentences[0].trim(); 
             }
+            // 暴力死锁20字符
             if (reply.length > 20) {
                 reply = reply.substring(0, 18) + '…';
             }
@@ -526,7 +528,6 @@ ${memoryBlock}`;
         localStorage.setItem('xtang_theme', themes[themeIdx]); dropdown.classList.remove('show');
     };
 
-    // 弹窗逻辑恢复
     document.getElementById('dropPersona').onclick = () => { document.getElementById('personaText').value = getUserPersona(); document.getElementById('persona-overlay').classList.add('show'); dropdown.classList.remove('show'); };
     document.getElementById('personaCancel').onclick = () => document.getElementById('persona-overlay').classList.remove('show');
     document.getElementById('personaSave').onclick = () => {
