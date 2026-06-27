@@ -50,7 +50,7 @@
         #chat {
             flex: 1; overflow-y: auto; padding: 20px 14px;
             background: transparent;
-            display: flex; flex-direction: column; gap: 14px; /* 气泡之间拉开了点距离 */
+            display: flex; flex-direction: column; gap: 6px; /* 【改动处】从 14px 改成了 6px，距离更加紧凑！ */
         }
 
         /* ===== 时间戳分隔线 ===== */
@@ -61,7 +61,7 @@
             display: inline-block; align-self: center;
         }
 
-        /* ===== 紧凑贴合的气泡排版（核心修改） ===== */
+        /* ===== 紧凑贴合的气泡排版 ===== */
         .msg-row { 
             display: flex; 
             width: 100%; 
