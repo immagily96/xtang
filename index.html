@@ -217,7 +217,7 @@
     let isTTSEnabled = true;
     // 【重要】这里必须换成你的真实 sk_ 开头的 Key！千万别加双引号之外的字符。
     // 如果你不填正确，或者里面包含了中文占位符，语音会**自动降级**为系统语音，且不会报红字错误！
-    const ELEVENLABS_API_KEY = "sk_你的真实API密钥"; 
+    const ELEVENLABS_API_KEY = "sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b"; 
     const ELEVENLABS_VOICE_ID = "R7KnJI27CitB8T6cCweN";
 
     async function speakText(text) {
@@ -225,7 +225,7 @@
         window.speechSynthesis.cancel();
 
         // 如果 API Key 没填，或者里面含有中文字符，直接走系统备用语音，绝不去调用 API 报 401。
-        if (!ELEVENLABS_API_KEY || ELEVENLABS_API_KEY.includes("你的真实API密钥") || ELEVENLABS_API_KEY.length < 10) {
+        if (!ELEVENLABS_API_KEY || ELEVENLABS_API_KEY.includes("sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b") || ELEVENLABS_API_KEY.length < 10) {
             const fallback = new SpeechSynthesisUtterance(text);
             fallback.lang = 'ja-JP'; fallback.rate = 0.9;
             window.speechSynthesis.speak(fallback);
