@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>xtang</title>
     <style>
         * { box-sizing: border-box; }
@@ -11,6 +11,8 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #dcdcdc;
             display: flex; justify-content: center; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none; user-select: none;
         }
 
         #app-container {
@@ -22,6 +24,20 @@
             overflow: hidden; border-radius: 8px;
         }
 
+        /* ===== 背景氛围光 ===== */
+        #app-container::before {
+            content: '';
+            position: absolute; top: -80px; right: -60px;
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, rgba(255,107,107,0.12) 0%, transparent 70%);
+            border-radius: 50%; pointer-events: none; z-index: 0;
+            animation: ambientFloat 8s ease-in-out infinite;
+        }
+        @keyframes ambientFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-20px, 30px) scale(1.2); }
+        }
+
         #header {
             padding: 12px 16px; 
             background: rgba(255,255,255,0.6);
@@ -29,6 +45,7 @@
             backdrop-filter: blur(8px);
             display: flex; align-items: center; justify-content: space-between;
             border-bottom: 1px solid rgba(0,0,0,0.04);
+            z-index: 2; position: relative;
         }
         .header-left {
             display: flex; align-items: center; gap: 12px;
@@ -38,10 +55,23 @@
             background: linear-gradient(135deg, #ff6b6b, #ff4757, #ff6348);
             border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.05);
             display: flex; justify-content: center; align-items: center;
+            transition: box-shadow 0.4s, transform 0.3s;
+        }
+        .header-avatar.pulse {
+            box-shadow: 0 0 0 6px rgba(255,71,87,0.18);
+            animation: avatarPulse 1.2s ease-in-out infinite;
+        }
+        @keyframes avatarPulse {
+            0%, 100% { box-shadow: 0 0 0 4px rgba(255,71,87,0.12); transform: scale(1); }
+            50% { box-shadow: 0 0 0 10px rgba(255,71,87,0.06); transform: scale(1.05); }
         }
         .header-info { display: flex; flex-direction: column; }
         .header-name { font-size: 16px; font-weight: 600; color: #222; }
-        .header-status { font-size: 11px; color: #999; margin-top: 1px; }
+        .header-status { 
+            font-size: 11px; color: #999; margin-top: 1px; 
+            transition: color 0.3s;
+        }
+        .header-status.typing-status { color: #ff4757; }
 
         .header-tools {
             display: flex; gap: 14px; font-size: 13px; color: #666; align-items: center;
@@ -55,11 +85,12 @@
         #chat {
             flex: 1; overflow-y: auto; padding: 20px 16px 10px 16px;
             display: flex; flex-direction: column; gap: 14px;
-            background: transparent;
+            background: transparent; position: relative; z-index: 1;
         }
         #chat::-webkit-scrollbar { width: 4px; }
         #chat::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 4px; }
 
+        /* ===== 时间分割线 ===== */
         .time-divider {
             text-align: center; font-size: 11px; color: #b0b0b0; 
             margin: 6px 0; user-select: none;
@@ -67,40 +98,62 @@
             display: inline-block; align-self: center;
         }
 
+        /* ===== 消息行 ===== */
         .msg-row { 
-            display: flex; width: 100%; align-items: flex-start; gap: 8px; 
+            display: flex; width: 100%; align-items: flex-end; gap: 8px; 
+            animation: msgSlideIn 0.35s ease-out;
         }
-        .ai-row { justify-content: flex-start; padding: 0 16px 0 0; flex-direction: row; }
-        .user-row { justify-content: flex-end; padding: 0 0 0 16px; flex-direction: row; }
+        @keyframes msgSlideIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .ai-row { justify-content: flex-start; padding: 0 40px 0 0; flex-direction: row; }
+        .user-row { justify-content: flex-end; padding: 0 0 0 40px; flex-direction: row; }
 
         .msg-avatar {
-            width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; margin-top: 2px;
+            width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
             border: 1px solid rgba(0,0,0,0.04);
             display: flex; justify-content: center; align-items: center;
+            transition: box-shadow 0.3s;
         }
         .msg-avatar.user-avatar { background: linear-gradient(135deg, #95ec69, #4ade80, #22c55e); }
         .msg-avatar.ai-avatar { background: linear-gradient(135deg, #ff6b6b, #ff4757, #ff6348); }
 
         .bubble { 
-            padding: 10px 16px; border-radius: 16px; font-size: 15px; 
+            padding: 10px 16px; border-radius: 18px; font-size: 15px; 
             line-height: 1.5; max-width: 75%; position: relative; 
-            word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-            cursor: default; display: flex; align-items: center; gap: 8px;
+            word-wrap: break-word; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            cursor: default; display: flex; flex-direction: column; gap: 4px;
+            transition: transform 0.15s;
         }
         .bubble.ai { 
             background: #ffffff; color: #111; 
-            border-bottom-left-radius: 4px;
+            border-bottom-left-radius: 6px;
             cursor: pointer;
         }
-        .bubble.ai:hover { background: #f5f5f5; }
+        .bubble.ai:active { transform: scale(0.97); }
+        .bubble.ai:hover { background: #f9f9f9; }
         .bubble.user { 
             background: #95ec69; color: #000; 
-            border-bottom-right-radius: 4px;
+            border-bottom-right-radius: 6px;
         }
 
+        /* 气泡内文字行 + 可视化条 */
+        .bubble-content {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .bubble-text { flex: 1; }
+
+        /* 消息时间戳 */
+        .bubble-time {
+            font-size: 10px; color: #aaa; align-self: flex-end;
+            margin-top: 2px; user-select: none;
+        }
+
+        /* ===== 可视化条（说话时） ===== */
         .bubble.ai .visualizer {
             display: none;
-            align-items: flex-end; gap: 2px; height: 14px;
+            align-items: flex-end; gap: 2px; height: 14px; flex-shrink: 0;
         }
         .bubble.ai.speaking .visualizer {
             display: flex;
@@ -118,6 +171,46 @@
             100% { transform: scaleY(2); }
         }
 
+        /* ===== 「正在输入...」动画 ===== */
+        #typing-indicator {
+            display: none;
+            align-items: center; gap: 6px;
+            padding: 0 0 0 0; margin-bottom: 2px;
+            animation: msgSlideIn 0.3s ease-out;
+        }
+        #typing-indicator.show { display: flex; }
+        .typing-dots {
+            display: flex; gap: 4px; align-items: center;
+            background: #ffffff; padding: 10px 16px;
+            border-radius: 18px; border-bottom-left-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .typing-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #c0c0c0;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(1) { animation-delay: 0.0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); background: #c0c0c0; }
+            30% { transform: translateY(-8px); background: #ff6b6b; }
+        }
+
+        /* ===== 双击飘心 ===== */
+        .heart-float {
+            position: fixed; pointer-events: none; z-index: 999;
+            font-size: 28px;
+            animation: heartUp 1.2s ease-out forwards;
+        }
+        @keyframes heartUp {
+            0% { opacity: 1; transform: translateY(0) scale(0.5) rotate(0deg); }
+            30% { opacity: 1; transform: translateY(-30px) scale(1.3) rotate(10deg); }
+            100% { opacity: 0; transform: translateY(-140px) scale(0.6) rotate(-20deg); }
+        }
+
+        /* ===== 输入区 ===== */
         #input-area {
             background: rgba(255,255,255,0.9);
             -webkit-backdrop-filter: blur(6px);
@@ -125,6 +218,7 @@
             border-top: 1px solid rgba(255,255,255,0.8);
             padding: 12px 16px;
             display: flex; align-items: center; gap: 12px;
+            z-index: 2; position: relative;
         }
         .input-wrapper {
             flex: 1; height: 40px; position: relative; display: flex; align-items: center;
@@ -153,10 +247,12 @@
         #sendBtn { 
             background: #07c160; color: white; border: none; padding: 0 22px; 
             border-radius: 22px; font-size: 14px; font-weight: 500; height: 40px;
-            cursor: pointer; transition: opacity 0.2s; flex-shrink: 0;
+            cursor: pointer; transition: opacity 0.2s, transform 0.15s; flex-shrink: 0;
         }
+        #sendBtn:active { transform: scale(0.95); }
         #sendBtn:disabled { opacity: 0.5; }
 
+        /* ===== Toast ===== */
         .copy-toast {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.75); color: white; padding: 10px 22px; border-radius: 24px;
@@ -175,7 +271,7 @@
 <div id="app-container">
     <div id="header">
         <div class="header-left">
-            <div class="header-avatar"></div>
+            <div class="header-avatar" id="headerAvatar"></div>
             <div class="header-info">
                 <div class="header-name">xtang</div>
                 <div class="header-status" id="headerStatus">在线</div>
@@ -188,7 +284,17 @@
             <span id="btnClear">清空</span>
         </div>
     </div>
-    <div id="chat"></div>
+    <div id="chat">
+        <!-- 正在输入指示器（预先渲染） -->
+        <div id="typing-indicator">
+            <div class="msg-avatar ai-avatar"></div>
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+    </div>
     <div id="input-area">
         <div class="input-wrapper" id="inputWrapper">
             <div class="voice-overlay">按住 说话</div>
@@ -228,18 +334,54 @@
     const sendBtn = document.getElementById('sendBtn');
     const inputWrapper = document.getElementById('inputWrapper');
     const headerStatus = document.getElementById('headerStatus');
+    const headerAvatar = document.getElementById('headerAvatar');
+    const typingIndicator = document.getElementById('typing-indicator');
     let lastMessageTime = 0;
     let currentAudio = null;
 
     let apiKey = localStorage.getItem('xtang_ds_key');
-    if (!apiKey) { apiKey = prompt("sk-9f459255c85942d7bea955b6ded52b48："); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
+    if (!apiKey) { apiKey = prompt("sk-9f459255c85942d7bea955b6ded52b48"); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
 
     let isTTSEnabled = true;
-    /* 需要把下面引号里的内容换成你的真实 ElevenLabs Key */
     const ELEVENLABS_API_KEY = "sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b"; 
     const ELEVENLABS_VOICE_ID = "R7KnJI27CitB8T6cCweN";
 
-    // 预加载语音列表，确保手机读取日语发音
+    // ===== 动态状态管理 =====
+    function setStatus(text, isTyping = false) {
+        headerStatus.textContent = text;
+        if (isTyping) {
+            headerStatus.classList.add('typing-status');
+            headerAvatar.classList.add('pulse');
+        } else {
+            headerStatus.classList.remove('typing-status');
+            headerAvatar.classList.remove('pulse');
+        }
+    }
+
+    // ===== 正在输入指示器 =====
+    function showTyping() {
+        typingIndicator.classList.add('show');
+        chat.scrollTop = chat.scrollHeight;
+        setStatus('正在输入...', true);
+    }
+    function hideTyping() {
+        typingIndicator.classList.remove('show');
+        setStatus('在线', false);
+    }
+
+    // ===== 双击飘心 =====
+    let lastTapTime = 0;
+    function spawnHeart(x, y) {
+        const heart = document.createElement('div');
+        heart.className = 'heart-float';
+        heart.textContent = ['❤️','💕','💖','💗','🩷'][Math.floor(Math.random()*5)];
+        heart.style.left = x + 'px';
+        heart.style.top = y + 'px';
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 1300);
+    }
+
+    // 预加载语音列表
     let jpVoice = null;
     function findJapaneseVoice() {
         const voices = window.speechSynthesis.getVoices();
@@ -267,7 +409,7 @@
         const showStart = () => { if (bubbleEl) bubbleEl.classList.add('speaking'); };
         const showEnd = () => { if (bubbleEl) bubbleEl.classList.remove('speaking'); };
 
-        if (!ELEVENLABS_API_KEY || ELEVENLABS_API_KEY.includes("sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b") || ELEVENLABS_API_KEY.length < 10) {
+        if (!ELEVENLABS_API_KEY || ELEVENLABS_API_KEY.length < 10) {
             const fallback = new SpeechSynthesisUtterance(text);
             if (!jpVoice) findJapaneseVoice();
             if (jpVoice) fallback.voice = jpVoice;
@@ -358,11 +500,12 @@
         }
     };
 
-    /* 【核心更新】人设调整，允许自然地说 1~3 句话 */
+    /* 【活人感人设】 */
     const defaultPersona = `21岁的日本大学生，性格开朗温柔，有活人感
 【语言规则】日语口语为主，像真的和朋友在LINE上聊天一样！不要加书面语和废话。
 【称呼】非常喜欢叫对方"姐姐"（お姉ちゃん）
-【对话风格】可以一次发1~3句话，把想说的话说完整。日常随性，带有年轻人的慵懒，带点“ね～”、“だよ”等语气词。不用挤在一个长句里，用“。”或换行自然衔接。`;
+【对话风格】可以一次发1~3句话，把想说的话说完整。日常随性，带有年轻人的慵懒，带点"ね～"、"だよ"等语气词。不用挤在一个长句里，用"。"或换行自然衔接。
+【情绪表达】适当使用emoji（如😊🥺💕✨），像真人发LINE一样自然，不要滥用。`;
 
     function getUserMemory() { return localStorage.getItem('xtang_memory') || ''; }
     function getUserPersona() { return localStorage.getItem('xtang_persona') || defaultPersona; }
@@ -375,14 +518,17 @@
 ${persona}
 ${memoryBlock}
 【🚨 绝对死命令！】
-1. 回复必须口语化，不分段的话用“。”分隔，想分段请用换行。
-2. 不能写小作文，但要把话说完！一次回复控制在 60 个日文字符以内。
+1. 回复必须口语化，不分段的话用"。"分隔，想分段请用换行。
+2. 不能写小作文，但要把话说完！一次回复控制在 30个日文字符以内。
 3. 绝对禁止重复客套话！`;
     }
 
     let history = [{role: 'system', content: buildSystemPrompt()}];
     function renderHistory() {
-        chat.innerHTML = ''; lastMessageTime = 0;
+        chat.innerHTML = ''; 
+        // 把 typing indicator 加回来
+        chat.appendChild(typingIndicator);
+        lastMessageTime = 0;
         for (let i = 1; i < history.length; i++) {
             const role = history[i].role === 'user' ? 'user' : 'assistant';
             addBubble(role, history[i].content, false);
@@ -414,6 +560,11 @@ ${memoryBlock}
         if (!isAuto) history.push({role: 'user', content: text});
         if (history[0]?.role === 'system') history[0].content = buildSystemPrompt();
 
+        // ===== 活人感：显示「正在输入...」 + 随机延迟 =====
+        showTyping();
+        const typingDelay = 1000 + Math.random() * 2000; // 1~3秒随机
+        await new Promise(r => setTimeout(r, typingDelay));
+
         try {
             const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
                 method: 'POST',
@@ -423,13 +574,14 @@ ${memoryBlock}
             const data = await resp.json();
             let reply = data.choices[0].message.content;
             
-            /* 【核心更新】放宽字数限制，保留 2~3 句话，防止废话 */
+            // 隐藏「正在输入...」
+            hideTyping();
+
+            /* 放宽字数限制，保留 2~3 句话 */
             const sentences = reply.match(/[^。！？.!?\n]+[。！？.!?\n]?/g);
             if (sentences && sentences.length > 2) {
-                // 只保留前 2 句完整的句子，自然衔接
                 reply = sentences.slice(0, 2).join(' ').trim();
             }
-            // 放宽到大约 60 个日文字符为上限
             if (reply.length > 60) {
                 reply = reply.substring(0, 58);
             }
@@ -437,24 +589,21 @@ ${memoryBlock}
             history.push({role: 'assistant', content: reply});
             saveHistory();
             
-            /* 【核心更新】模拟“连续发多条消息”的分段机制 */
+            /* 分段模拟连续发消息 */
             const lines = reply.split('\n').filter(l => l.trim().length > 0);
             let lastBubbleEl = null;
 
             const renderLines = () => {
                 if (lines.length > 1) {
-                    // 逐条发送，间隔 400 毫秒，像真人发消息一样
                     lines.forEach((line, index) => {
                         setTimeout(() => {
                             lastBubbleEl = addBubble('assistant', line.trim());
-                            // 只有当最后一条发出来时，才让 TTS 的动画附在最后一条上，并开始朗读完整文字
                             if (index === lines.length - 1) {
                                 if (isTTSEnabled) speakText(reply, lastBubbleEl);
                             }
                         }, index * 400);
                     });
                 } else {
-                    // 如果只有一句话，正常渲染并朗读
                     lastBubbleEl = addBubble('assistant', reply);
                     if (isTTSEnabled) speakText(reply, lastBubbleEl);
                 }
@@ -462,7 +611,10 @@ ${memoryBlock}
             
             renderLines();
 
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e); 
+            hideTyping();
+        }
     }
 
     function addBubble(role, text, showDivider = true) {
@@ -480,21 +632,65 @@ ${memoryBlock}
         const isAI = role === 'assistant';
         row.className = `msg-row ${isAI ? 'ai-row' : 'user-row'}`;
         
+        // 当前时间戳
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'});
+        
         if (isAI) {
             const visualizerHtml = `<div class="visualizer"><div class="vis-bar"></div><div class="vis-bar"></div><div class="vis-bar"></div><div class="vis-bar"></div></div>`;
-            row.innerHTML = `<div class="msg-avatar ai-avatar"></div><div class="bubble ai">${visualizerHtml}${text}</div>`;
+            row.innerHTML = `<div class="msg-avatar ai-avatar"></div>
+                <div class="bubble ai">
+                    <div class="bubble-content">${visualizerHtml}<span class="bubble-text">${text}</span></div>
+                    <span class="bubble-time">${timeStr}</span>
+                </div>`;
         } else {
-            row.innerHTML = `<div class="bubble user">${text}</div><div class="msg-avatar user-avatar"></div>`;
+            row.innerHTML = `<div class="bubble user">
+                <span class="bubble-text">${text}</span>
+                <span class="bubble-time">${timeStr}</span>
+            </div><div class="msg-avatar user-avatar"></div>`;
         }
-        chat.appendChild(row);
+        
+        // 在 typing indicator 之前插入
+        chat.insertBefore(row, typingIndicator);
+        chat.scrollTop = chat.scrollHeight;
 
         if (isAI) {
             const bubble = row.querySelector('.bubble.ai');
-            bubble.addEventListener('click', () => { 
+            
+            // 点击朗读
+            bubble.addEventListener('click', (e) => { 
+                // 排除双击的情况
+                if (e.detail === 2) return;
                 if (isTTSEnabled) speakText(text, bubble); 
             });
+
+            // 双击飘心 💕
+            bubble.addEventListener('dblclick', (e) => {
+                const rect = bubble.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2 + (Math.random()-0.5)*40;
+                const cy = rect.top;
+                spawnHeart(cx, cy);
+            });
+
+            // 移动端双击兼容
+            let tapCount = 0;
+            bubble.addEventListener('touchstart', (e) => {
+                const nowTap = Date.now();
+                if (nowTap - lastTapTime < 350) {
+                    tapCount++;
+                    if (tapCount >= 2) {
+                        const rect = bubble.getBoundingClientRect();
+                        const cx = rect.left + rect.width / 2 + (Math.random()-0.5)*40;
+                        const cy = rect.top;
+                        spawnHeart(cx, cy);
+                        tapCount = 0;
+                    }
+                } else {
+                    tapCount = 1;
+                }
+                lastTapTime = nowTap;
+            });
         }
-        chat.scrollTop = chat.scrollHeight;
         return isAI ? row.querySelector('.bubble.ai') : null;
     }
 
