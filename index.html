@@ -32,13 +32,12 @@
         .header-left {
             display: flex; align-items: center; gap: 12px;
         }
-        /* 【修改】彻底移除了外部图片，改为渐变纯色+图标 */
+        /* 【修改】顶部头像：改为纯红色渐变，无表情 */
         .header-avatar { 
             width: 36px; height: 36px; 
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            background: linear-gradient(135deg, #ff6b6b, #ff4757, #ff6348);
             border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.05);
             display: flex; justify-content: center; align-items: center;
-            color: white; font-size: 16px;
         }
         .header-info { display: flex; flex-direction: column; }
         .header-name { font-size: 16px; font-weight: 600; color: #222; }
@@ -74,21 +73,20 @@
         .ai-row { justify-content: flex-start; padding: 0 16px 0 0; flex-direction: row; }
         .user-row { justify-content: flex-end; padding: 0 0 0 16px; flex-direction: row; }
 
-        /* 【修改】彻底移除了外部图片依赖，用纯色+Emoji代替 */
+        /* 【修改】头像：AI用红色渐变，你（用户）用绿色渐变 */
         .msg-avatar {
             width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; margin-top: 2px;
             border: 1px solid rgba(0,0,0,0.04);
             display: flex; justify-content: center; align-items: center;
-            font-size: 14px; color: white;
         }
-        .msg-avatar.user-avatar { background: linear-gradient(135deg, #6b6bff, #4b4bff); }
-        .msg-avatar.ai-avatar { background: linear-gradient(135deg, #ff6b6b, #ff4757); }
+        .msg-avatar.user-avatar { background: linear-gradient(135deg, #95ec69, #4ade80, #22c55e); }
+        .msg-avatar.ai-avatar { background: linear-gradient(135deg, #ff6b6b, #ff4757, #ff6348); }
 
         .bubble { 
             padding: 10px 16px; border-radius: 16px; font-size: 15px; 
             line-height: 1.5; max-width: 75%; position: relative; 
             word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-            cursor: default;
+            cursor: default; display: flex; align-items: center; gap: 8px;
         }
         .bubble.ai { 
             background: #ffffff; color: #111; 
@@ -99,6 +97,27 @@
         .bubble.user { 
             background: #95ec69; color: #000; 
             border-bottom-right-radius: 4px;
+        }
+
+        /* 【修改】AI 文本气泡内置的音频可视化播放器 */
+        .bubble.ai .visualizer {
+            display: none; /* 默认隐藏 */
+            align-items: flex-end; gap: 3px; height: 20px;
+        }
+        .bubble.ai.speaking .visualizer {
+            display: flex; /* 说话时显示 */
+        }
+        .vis-bar {
+            width: 3px; border-radius: 2px; background: #ff4757; /* 红色音波 */
+            height: 10px; animation: jump 0.6s infinite ease-in-out alternate;
+        }
+        .vis-bar:nth-child(1) { animation-delay: 0.0s; height: 16px; background: #ff6b6b; }
+        .vis-bar:nth-child(2) { animation-delay: 0.2s; height: 20px; background: #ff4757; }
+        .vis-bar:nth-child(3) { animation-delay: 0.4s; height: 14px; background: #ff6348; }
+        .vis-bar:nth-child(4) { animation-delay: 0.6s; height: 10px; background: #ff6b6b; }
+        @keyframes jump {
+            0% { transform: scaleY(0.3); }
+            100% { transform: scaleY(2); }
         }
 
         #input-area {
@@ -154,8 +173,8 @@
 <div id="app-container">
     <div id="header">
         <div class="header-left">
-            <!-- 移除了图片，换成纯色+♂图标 -->
-            <div class="header-avatar">♂</div>
+            <!-- 顶部纯渐变红头像 -->
+            <div class="header-avatar"></div>
             <div class="header-info">
                 <div class="header-name">xtang</div>
                 <div class="header-status" id="headerStatus">在线</div>
@@ -178,7 +197,7 @@
     </div>
 </div>
 
-<!-- 弹窗（保持一致） -->
+<!-- 弹窗保持不变 -->
 <div id="memory-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:100;justify-content:center;align-items:center;">
     <div style="background:white;border-radius:16px;padding:24px;width:85%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.15);">
         <h3 style="margin:0 0 8px 0;font-size:17px;color:#333;">🧠 关于你</h3>
@@ -209,25 +228,33 @@
     const inputWrapper = document.getElementById('inputWrapper');
     const headerStatus = document.getElementById('headerStatus');
     let lastMessageTime = 0;
+    let currentAudio = null;
 
     let apiKey = localStorage.getItem('xtang_ds_key');
     if (!apiKey) { apiKey = prompt("请输入 DeepSeek API Key："); if (apiKey) localStorage.setItem('xtang_ds_key', apiKey); }
 
-    // ===== 文字转语音 (ElevenLabs) 改进版 =====
+    // ===== 文字转语音 (ElevenLabs) & 音频可视化 =====
     let isTTSEnabled = true;
-    // 【重要】这里必须换成你的真实 sk_ 开头的 Key！千万别加双引号之外的字符。
-    // 如果你不填正确，或者里面包含了中文占位符，语音会**自动降级**为系统语音，且不会报红字错误！
     const ELEVENLABS_API_KEY = "sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b"; 
     const ELEVENLABS_VOICE_ID = "R7KnJI27CitB8T6cCweN";
 
-    async function speakText(text) {
+    async function speakText(text, bubbleEl) {
         if (!isTTSEnabled) return;
+        
+        // 暂停之前的语音和动画
         window.speechSynthesis.cancel();
+        if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+        if (bubbleEl) bubbleEl.classList.remove('speaking');
 
-        // 如果 API Key 没填，或者里面含有中文字符，直接走系统备用语音，绝不去调用 API 报 401。
+        const showStart = () => { if (bubbleEl) bubbleEl.classList.add('speaking'); };
+        const showEnd = () => { if (bubbleEl) bubbleEl.classList.remove('speaking'); };
+
+        // 如果 Key 不对，直接调用系统自带语音
         if (!ELEVENLABS_API_KEY || ELEVENLABS_API_KEY.includes("sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b") || ELEVENLABS_API_KEY.length < 10) {
             const fallback = new SpeechSynthesisUtterance(text);
             fallback.lang = 'ja-JP'; fallback.rate = 0.9;
+            fallback.onstart = showStart;
+            fallback.onend = showEnd;
             window.speechSynthesis.speak(fallback);
             return;
         }
@@ -252,12 +279,23 @@
             const audioBlob = await response.blob();
             const audioUrl = URL.createObjectURL(audioBlob);
             const audio = new Audio(audioUrl);
+
+            // 绑定事件触发可视化动画
+            audio.onplay = showStart;
+            audio.onended = () => {
+                showEnd();
+                URL.revokeObjectURL(audioUrl);
+                currentAudio = null;
+            };
+            currentAudio = audio; // 保存到全局以便随时停止
             audio.play();
-            audio.onended = () => URL.revokeObjectURL(audioUrl);
+
         } catch (e) {
-            console.warn("ElevenLabs 失败，切换到备用语音:", e.message);
+            console.warn("ElevenLabs 失败，切换到系统备用语音:", e.message);
             const fallback = new SpeechSynthesisUtterance(text);
             fallback.lang = 'ja-JP'; fallback.rate = 0.9;
+            fallback.onstart = showStart;
+            fallback.onend = showEnd;
             window.speechSynthesis.speak(fallback);
         }
     }
@@ -270,6 +308,7 @@
         } else {
             ttsBtn.classList.remove('tts-active'); ttsBtn.classList.add('tts-inactive'); ttsBtn.innerText = '🔇 静音';
             window.speechSynthesis.cancel();
+            if (currentAudio) { currentAudio.pause(); currentAudio = null; }
         }
     };
 
@@ -343,8 +382,10 @@ ${memoryBlock}
 
             history.push({role: 'assistant', content: reply});
             saveHistory();
-            addBubble('assistant', reply);
-            if (isTTSEnabled) speakText(reply);
+            
+            // 接收返回的气泡元素，以便传递到语音功能激活动画
+            const bubbleEl = addBubble('assistant', reply);
+            if (isTTSEnabled) speakText(reply, bubbleEl);
         } catch (e) { console.error(e); }
     }
 
@@ -363,18 +404,26 @@ ${memoryBlock}
         const isAI = role === 'assistant';
         row.className = `msg-row ${isAI ? 'ai-row' : 'user-row'}`;
         
-        // 【修改】头像换成了对应颜色的 Emoji（红色系给AI，蓝紫色系给用户）
         if (isAI) {
-            row.innerHTML = `<div class="msg-avatar ai-avatar">🙋</div><div class="bubble ai">${text}</div>`;
+            // 为 AI 气泡添加播放器可视化动画
+            const visualizerHtml = `<div class="visualizer"><div class="vis-bar"></div><div class="vis-bar"></div><div class="vis-bar"></div><div class="vis-bar"></div></div>`;
+            row.innerHTML = `<div class="msg-avatar ai-avatar"></div><div class="bubble ai">${visualizerHtml}${text}</div>`;
         } else {
-            row.innerHTML = `<div class="bubble user">${text}</div><div class="msg-avatar user-avatar">💁</div>`;
+            row.innerHTML = `<div class="bubble user">${text}</div><div class="msg-avatar user-avatar"></div>`;
         }
         chat.appendChild(row);
+
         if (isAI) {
             const bubble = row.querySelector('.bubble.ai');
-            bubble.addEventListener('click', () => { if (isTTSEnabled) speakText(text); });
+            // 点击气泡手动重新朗读
+            bubble.addEventListener('click', () => { 
+                if (isTTSEnabled) speakText(text, bubble); 
+            });
         }
         chat.scrollTop = chat.scrollHeight;
+        
+        // 返回气泡元素以便触发语音动画
+        return isAI ? row.querySelector('.bubble.ai') : null;
     }
 
     // ===== 长按语音输入 =====
