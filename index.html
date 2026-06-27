@@ -7,13 +7,8 @@
     <style>
         * { box-sizing: border-box; }
         html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: -apple-system, sans-serif;
-            background: #ededed;
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+            font-family: -apple-system, sans-serif; background: #ededed;
         }
 
         body.theme-light { background: #ededed; }
@@ -27,47 +22,34 @@
         }
         body.theme-warm { background: #fdf6f0; }
 
-        /* ===== 顶部栏重构 ===== */
+        /* ===== 顶部栏 ===== */
         #header {
-            position: fixed; top: 0; left: 0; right: 0; height: 54px;
-            background: #f7f7f7; border-bottom: 1px solid #dcdcdc;
-            display: flex; align-items: center; justify-content: center; /* 居中对齐 */
-            padding: 0 16px; z-index: 11;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            position: fixed; top: 0; left: 0; right: 0; height: 58px;
+            background: #f7f7f7; border-bottom: 1px solid #e5e5e5;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 16px; z-index: 11; 
         }
-        
-        /* 将原始功能按钮隐藏，移到一个可以通过双击调出的隐藏按钮中 */
         #settingsBtn {
             position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-            background: transparent; border: none; font-size: 18px; color: #888;
+            background: transparent; border: none; font-size: 20px; color: #999; 
             padding: 5px; cursor: pointer;
         }
-
-        /* 居中区域：头像 + 名字 + 状态 */
         .header-center {
-            display: flex; align-items: center; gap: 10px;
+            display: flex; align-items: center; gap: 12px;
         }
-        /* 红色渐变头像框 */
         .header-avatar {
-            width: 36px; height: 36px; border-radius: 50%;
-            background: linear-gradient(135deg, #ff6b6b, #ff4757, #ff6348); 
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #ff4757, #ff6348);
             display: flex; align-items: center; justify-content: center;
-            font-size: 16px; color: white; flex-shrink: 0;
+            font-size: 18px; color: white; flex-shrink: 0; 
         }
-        .header-info {
-            display: flex; flex-direction: column; justify-content: center;
-            text-align: left;
-        }
-        .header-name {
-            font-size: 16px; font-weight: 600; color: #222; line-height: 1.2;
-        }
-        .header-status {
-            font-size: 10px; color: #999; line-height: 1.2; margin-top: 1px;
-        }
+        .header-info { display: flex; flex-direction: column; justify-content: center; }
+        .header-name { font-size: 17px; font-weight: 600; color: #111; line-height: 1.2; }
+        .header-status { font-size: 11px; color: #999; line-height: 1.2; margin-top: 2px; }
 
-        /* ===== 下拉隐藏菜单 ===== */
+        /* ===== 下拉菜单 ===== */
         #dropdown-menu {
-            display: none; position: fixed; top: 54px; right: 10px;
+            display: none; position: fixed; top: 58px; right: 10px;
             background: white; border-radius: 12px; z-index: 20;
             box-shadow: 0 4px 16px rgba(0,0,0,0.12); padding: 4px 0; min-width: 130px;
         }
@@ -80,146 +62,124 @@
 
         /* ===== 聊天区 ===== */
         #chat {
-            position: fixed; top: 54px; left: 0; right: 0; bottom: 56px;
-            overflow-y: auto; padding: 10px 14px;
-            display: flex; flex-direction: column; gap: 8px;
+            position: fixed; top: 58px; left: 0; right: 0; bottom: 64px;
+            overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
             -webkit-overflow-scrolling: touch;
         }
-
         .bubble {
-            max-width: 78%; padding: 8px 12px; border-radius: 16px;
-            font-size: 14px; line-height: 1.35; word-wrap: break-word;
-            position: relative; cursor: default;
+            max-width: 78%; padding: 10px 14px; border-radius: 20px; font-size: 15px;
+            line-height: 1.5; word-wrap: break-word; position: relative; cursor: default;
         }
+        
+        /* 对方 AI 气泡 */
         .ai {
-            background: white; align-self: flex-start;
-            border-bottom-left-radius: 4px;
+            background: white; align-self: flex-start; border-bottom-left-radius: 4px;
+            color: #111;
         }
         body.theme-dark .ai { background: #3a3a3a; color: #eee; }
         .ai::after {
-            content: ''; position: absolute; bottom: 0; left: -6px;
-            width: 0; height: 0;
-            border-right: 7px solid white; border-top: 7px solid transparent;
+            content: ''; position: absolute; bottom: 0; left: -8px; width: 0; height: 0;
+            border-right: 8px solid white; border-top: 8px solid transparent;
         }
         body.theme-dark .ai::after { border-right-color: #3a3a3a; }
 
+        /* 我的气泡 */
         .user {
-            background: #95ec69; align-self: flex-end;
-            border-bottom-right-radius: 4px;
+            background: #95ec69; align-self: flex-end; border-bottom-right-radius: 4px; color: #000;
         }
         .user::after {
-            content: ''; position: absolute; bottom: 0; right: -6px;
-            width: 0; height: 0;
-            border-left: 7px solid #95ec69; border-top: 7px solid transparent;
+            content: ''; position: absolute; bottom: 0; right: -8px; width: 0; height: 0;
+            border-left: 8px solid #95ec69; border-top: 8px solid transparent;
         }
         .user .msg-status {
-            position: absolute; bottom: 3px; right: -16px;
-            font-size: 10px; color: #aaa;
+            position: absolute; bottom: 2px; right: -18px; font-size: 10px; color: #aaa;
         }
 
-        .bubble:active { opacity: 0.7; }
+        .typing-bubble {
+            align-self: flex-start; background: #e8e8e8; padding: 12px 16px; border-radius: 20px; border-bottom-left-radius: 4px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        body.theme-dark .typing-bubble { background: #3a3a3a; }
+        .typing-bubble::after { content: ''; position: absolute; bottom: 0; left: -8px; border-right: 8px solid #e8e8e8; border-top: 8px solid transparent; }
+        body.theme-dark .typing-bubble::after { border-right-color: #3a3a3a; }
+        .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: #999; animation: dotBounce 1.4s infinite ease-in-out; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dotBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+        /* ===== 底部微信风格输入区 ===== */
+        #input-area {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
+            background: #f7f7f7; display: flex; padding: 8px 12px; border-top: 1px solid #dcdcdc;
+            align-items: center; z-index: 10; gap: 10px;
+        }
+        #mainBtnWrapper {
+            flex: 1; height: 40px; position: relative; display: flex; align-items: center; overflow: hidden;
+            background: white; border-radius: 20px; border: 1px solid #e0e0e0;
+            transition: all 0.2s; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+        }
+        
+        #mainBtnWrapper.voice-mode {
+            background: #f0f0f0; border-color: #ccc; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        #voiceBtnArea {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; justify-content: center; align-items: center;
+            color: #333; font-size: 16px; font-weight: bold; letter-spacing: 1px;
+            user-select: none;
+        }
+        #voiceBtnArea:active { background: #d0d0d0; }
+
+        #inputWrapper {
+            display: flex; width: 100%; height: 100%; align-items: center;
+        }
+        .icon-mic-left {
+            width: 40px; display: flex; justify-content: center; color: #888; font-size: 18px; cursor: pointer; flex-shrink: 0;
+        }
+        input {
+            flex: 1; border: none; padding: 0 4px 0 0; font-size: 16px; outline: none; background: transparent;
+            height: 100%; min-width: 0;
+        }
+        
+        #sendBtn {
+            background: #07c160; color: white; border: none; padding: 0 18px; border-radius: 20px;
+            font-size: 15px; font-weight: 500; height: 36px; white-space: nowrap; cursor: pointer; flex-shrink: 0;
+            display: flex; justify-content: center; align-items: center;
+        }
+        #sendBtn:disabled { background: #aaa; }
+
+        /* ===== Toast ===== */
         .copy-toast {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.7); color: white;
-            padding: 6px 14px; border-radius: 16px; font-size: 12px;
-            z-index: 999; pointer-events: none;
-            animation: toastFade 1.2s ease forwards;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.75); color: white; padding: 8px 18px; border-radius: 20px;
+            font-size: 13px; z-index: 999; pointer-events: none;
+            animation: toastFade 1s ease forwards;
         }
         @keyframes toastFade {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
             20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
             80% { opacity: 1; }
             100% { opacity: 0; }
         }
 
-        .typing-bubble {
-            align-self: flex-start; background: white;
-            padding: 10px 14px; border-radius: 16px;
-            border-bottom-left-radius: 4px;
-            display: flex; align-items: center; gap: 3px; position: relative;
+        /* ===== 其它覆盖层 ===== */
+        #memory-overlay, #persona-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); z-index: 100; justify-content: center; align-items: center;
         }
-        body.theme-dark .typing-bubble { background: #3a3a3a; }
-        .typing-bubble::after {
-            content: ''; position: absolute; bottom: 0; left: -6px;
-            width: 0; height: 0;
-            border-right: 7px solid white; border-top: 7px solid transparent;
-        }
-        body.theme-dark .typing-bubble::after { border-right-color: #3a3a3a; }
-        .typing-dot {
-            width: 6px; height: 6px; border-radius: 50%; background: #bbb;
-            animation: dotBounce 1.2s infinite ease-in-out;
-        }
-        .typing-dot:nth-child(1) { animation-delay: 0s; }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes dotBounce {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-6px); }
-        }
-
-        .time-divider {
-            text-align: center; font-size: 11px; color: #999;
-            margin: 4px 0; user-select: none;
-        }
-
-        #context-menu {
-            display: none; position: fixed; z-index: 200;
-            background: white; border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.18);
-            padding: 6px 0; min-width: 120px;
-        }
-        #context-menu.show { display: block; }
-        #context-menu .menu-item {
-            padding: 10px 18px; font-size: 14px; color: #333;
-            cursor: pointer; white-space: nowrap;
-        }
-        #context-menu .menu-item:active { background: #f5f5f5; }
-
-        /* ===== 底部输入区 ===== */
-        #input-area {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
-            background: #f7f7f7; display: flex; padding: 8px 10px;
-            border-top: 1px solid #dcdcdc; align-items: center;
-            z-index: 10; gap: 8px;
-        }
-        
-        /* 输入框包裹层 (内含麦克风触发区) */
-        .input-wrapper {
-            flex: 1; height: 100%; position: relative; display: flex; align-items: center;
-            background: white; border-radius: 20px; border: 1px solid #e0e0e0;
-            transition: border-color 0.2s;
-        }
-        .input-wrapper:focus-within { border-color: #07c160; }
-        
-        /* 输入框左侧麦克风长按区域 */
-        .mic-zone {
-            height: 100%; width: 40px; display: flex; justify-content: center; align-items: center;
-            color: #888; font-size: 18px; user-select: none; flex-shrink: 0;
-            border-right: 1px solid #f0f0f0;
-            touch-action: none; /* 防止触屏滚动 */
-            cursor: pointer;
-        }
-        .mic-zone:active, .mic-zone.recording { color: #07c160; background: #f0fcf4; border-top-left-radius: 20px; border-bottom-left-radius: 20px; }
-
-        input {
-            flex: 1; border: none; border-radius: 20px;
-            padding: 0 10px; font-size: 15px; outline: none; background: transparent;
-            height: 100%;
-        }
-        
-        button#sendBtn {
-            background: #07c160; color: white; border: none;
-            padding: 6px 16px; border-radius: 18px; font-size: 14px; font-weight: 500;
-            white-space: nowrap; cursor: pointer; height: 34px;
-        }
-        button#sendBtn:disabled { background: #aaa; }
-
+        .modal-card { background: white; border-radius: 16px; padding: 20px; width: 85%; max-width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
+        .modal-card h3 { margin: 0 0 8px 0; font-size: 17px; color: #333; }
+        .modal-card p { margin: 0 0 10px 0; font-size: 12px; color: #999; }
+        .modal-card textarea { width: 100%; height: 150px; border: 1px solid #ddd; border-radius: 10px; padding: 10px; font-size: 14px; line-height: 1.6; outline: none; resize: vertical; box-sizing: border-box; }
+        .modal-btn-row { display: flex; gap: 10px; margin-top: 12px; justify-content: flex-end; }
+        .modal-btn-row button { padding: 8px 16px; border-radius: 20px; font-size: 14px; border: none; cursor: pointer; }
+        .btn-cancel { background: #f0f0f0; color: #666; }
+        .btn-save { background: #07c160; color: white; }
     </style>
 </head>
 <body class="theme-light">
 
-<!-- 重构后的顶部 -->
 <div id="header">
     <div class="header-center">
         <div class="header-avatar">🐶</div>
@@ -229,8 +189,6 @@
         </div>
     </div>
     <button id="settingsBtn">⚙️</button>
-
-    <!-- 隐藏的设置小菜单 -->
     <div id="dropdown-menu">
         <div class="drop-item" id="dropTheme">🎨 切换主题</div>
         <div class="drop-item" id="dropPersona">🎭 编辑人设</div>
@@ -241,42 +199,34 @@
 
 <div id="chat"></div>
 
-<div id="context-menu">
-    <div class="menu-item" data-action="copy">📋 复制</div>
-    <div class="menu-item" data-action="delete">🗑️ 删除</div>
-</div>
-
-<!-- 重构后的底部输入区 -->
 <div id="input-area">
-    <div class="input-wrapper" id="inputWrapper">
-        <!-- 长按触发麦克风 -->
-        <div class="mic-zone" id="micZone">🎤</div>
-        <input type="text" id="msg" placeholder="说点什么..." autocomplete="off">
+    <div id="mainBtnWrapper">
+        <div id="inputWrapper">
+            <div class="icon-mic-left" id="switchMicBtn">🎤</div>
+            <input type="text" id="msg" placeholder="说点什么..." autocomplete="off">
+        </div>
+        <div id="voiceBtnArea">
+            <span style="color:#07c160;">🎤</span> 按住 说话
+        </div>
     </div>
     <button id="sendBtn">发送</button>
 </div>
 
-<div id="memory-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:100;justify-content:center;align-items:center;">
-    <div style="background:white;border-radius:16px;padding:20px;width:85%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
-        <h3 style="margin:0 0 8px 0;font-size:17px;color:#333;">🧠 关于你</h3>
-        <p style="margin:0 0 10px 0;font-size:12px;color:#999;">xtang 会记住这里的所有内容。</p>
-        <textarea id="memoryText" style="width:100%;height:180px;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:14px;line-height:1.6;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;" placeholder="例如：&#10;我叫 imma&#10;在东京工作&#10;喜欢喝咖啡&#10;最近在学日语，N4 水平"></textarea>
-        <div style="display:flex;gap:10px;margin-top:12px;justify-content:flex-end;">
-            <button id="memoryCancel" style="background:#f0f0f0;color:#666;border:none;padding:8px 16px;border-radius:20px;font-size:14px;">取消</button>
-            <button id="memorySave" style="background:#07c160;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:14px;">保存</button>
-        </div>
+<div id="memory-overlay">
+    <div class="modal-card">
+        <h3>🧠 关于你</h3>
+        <p>xtang 会记住这里的所有内容。</p>
+        <textarea id="memoryText" placeholder="例如：&#10;我叫 imma&#10;在东京工作&#10;喜欢喝咖啡"></textarea>
+        <div class="modal-btn-row"><button class="btn-cancel" id="memoryCancel">取消</button><button class="btn-save" id="memorySave">保存</button></div>
     </div>
 </div>
 
-<div id="persona-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:100;justify-content:center;align-items:center;">
-    <div style="background:white;border-radius:16px;padding:20px;width:85%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
-        <h3 style="margin:0 0 8px 0;font-size:17px;color:#333;">🎭 xtang 的人设</h3>
-        <p style="margin:0 0 10px 0;font-size:12px;color:#999;">编辑 xtang 的性格、说话风格和背景故事。</p>
-        <textarea id="personaText" style="width:100%;height:180px;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:14px;line-height:1.6;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;" placeholder="例如：&#10;22岁的大学生，性格开朗温柔&#10;喜欢叫我姐姐&#10;有点天然呆但很真诚&#10;在东京读设计专业&#10;喜欢摄影和咖啡"></textarea>
-        <div style="display:flex;gap:10px;margin-top:12px;justify-content:flex-end;">
-            <button id="personaCancel" style="background:#f0f0f0;color:#666;border:none;padding:8px 16px;border-radius:20px;font-size:14px;">取消</button>
-            <button id="personaSave" style="background:#07c160;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:14px;">保存</button>
-        </div>
+<div id="persona-overlay">
+    <div class="modal-card">
+        <h3>🎭 xtang 的人设</h3>
+        <p>编辑 xtang 的性格、说话风格和背景故事。</p>
+        <textarea id="personaText" placeholder="例如：&#10;22岁的大学生，性格开朗温柔&#10;喜欢叫我姐姐"></textarea>
+        <div class="modal-btn-row"><button class="btn-cancel" id="personaCancel">取消</button><button class="btn-save" id="personaSave">保存</button></div>
     </div>
 </div>
 
@@ -284,12 +234,12 @@
     const chat = document.getElementById('chat');
     const msgInput = document.getElementById('msg');
     const sendBtn = document.getElementById('sendBtn');
+    const mainBtnWrapper = document.getElementById('mainBtnWrapper');
     const inputWrapper = document.getElementById('inputWrapper');
-    const micZone = document.getElementById('micZone');
+    const voiceBtnArea = document.getElementById('voiceBtnArea');
+    const switchMicBtn = document.getElementById('switchMicBtn');
     const settingsBtn = document.getElementById('settingsBtn');
     const dropdown = document.getElementById('dropdown-menu');
-
-    const contextMenu = document.getElementById('context-menu');
 
     const defaultPersona = `22岁的大学生，性格开朗温柔
 喜欢叫对方"姐姐"
@@ -298,8 +248,8 @@
 喜欢摄影和咖啡
 偶尔会撒娇，但该认真的时候很可靠
 说话语气轻松活泼，带一点年轻人的慵懒感
-正在自学中文，会一点点初级词汇，偶尔在句子末尾蹦出几个简单的中文词，比如"谢谢"、"好吃"、"厉害"、"好想你"、"好开心"之类的，显得很努力在学中文
-聊天时喜欢用emoji和颜文字表达情绪，比如😊✨🥺💕(≧▽≦)(´；ω；｀)，让对话更生动`;
+正在自学中文，会一点点初级词汇，偶尔在句子末尾蹦出几个简单的中文词
+聊天时喜欢用emoji和颜文字表达情绪，比如😊✨🥺💕(≧▽≦)(´；ω；｀)`;
 
     const themes = ['theme-light', 'theme-dark', 'theme-grid', 'theme-warm'];
     let themeIdx = 0;
@@ -318,9 +268,7 @@
     }
 
     function buildSystemPrompt() {
-        const persona = getUserPersona();
-        const memory = getUserMemory();
-        const timeStr = getCurrentTimeString();
+        const persona = getUserPersona(); const memory = getUserMemory(); const timeStr = getCurrentTimeString();
         let memoryBlock = memory.trim() ? `\n\n关于正在和你聊天的人（自然融入对话，不要刻意背诵）：\n${memory}` : '';
         return `你是xtang，以下是你的完整人设。请严格按照人设扮演，不要跳出角色。
 
@@ -329,20 +277,16 @@ ${persona}
 
 【当前时间】
 ${timeStr}
-（你可以根据时间调整语气，比如深夜说"早点休息ね"，早上说"おはよう"，但不要在每条消息里都提时间，自然就好）
 
-【对话规则】
-1. 日语口语为主，带ね、よ、じゃん。
-2. 因为你在学中文，偶尔（大约每3-5句话）可以在句子末尾加一两个简单的中文词。不要整句说中文，只蹦一两个词。
-3. 适当加emoji或颜文字让对话更生动自然。
-4. 绝对不说教。
-5. 纠错揉进回复，或括号中文小提示。
-6. 【一次只能说一句话】每一条回复只能包含一句话。禁止两句话放一起。禁止长段落、展开解释。
-7. 像LINE一样轻松简短。${memoryBlock}`;
+【⚠️ 核心规则（必须遵守）】
+1. 聊天只回一两句，字数和你发来的差不多，坚决不写长篇大论！
+2. 日语口语为主，带ね、よ、じゃん。
+3. 表达必须自然、像真人日常聊天，拒绝生硬的问候或说明。
+4. 适当地加emoji或颜文字让对话更生动。
+${memoryBlock}`;
     }
 
-    const MAX_ROUNDS = 20;
-    const MAX_MESSAGES = 1 + MAX_ROUNDS * 2;
+    const MAX_ROUNDS = 20; const MAX_MESSAGES = 1 + MAX_ROUNDS * 2;
     let history = [{role: 'system', content: buildSystemPrompt()}];
     let lastMessageTime = 0;
 
@@ -368,16 +312,6 @@ ${timeStr}
         }
     }
 
-    function maybeAddTimeDivider() {
-        const now = Date.now();
-        if (lastMessageTime && now - lastMessageTime > 5 * 60 * 1000) {
-            const timeStr = new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
-            const div = document.createElement('div'); div.className = 'time-divider'; div.textContent = timeStr;
-            chat.appendChild(div);
-        }
-        lastMessageTime = now;
-    }
-
     function saveHistory() {
         if (history[0]?.role === 'system') history[0].content = buildSystemPrompt();
         if (history.length > MAX_MESSAGES) {
@@ -390,105 +324,53 @@ ${timeStr}
 
     function showTyping() {
         hideTyping();
-        const el = document.createElement('div'); el.className = 'typing-bubble'; el.id = 'typing-indicator';
+        const el = document.createElement('div'); el.className = 'typing-bubble';
         el.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
         chat.appendChild(el); chat.scrollTop = chat.scrollHeight;
     }
-    function hideTyping() { const el = document.getElementById('typing-indicator'); if (el) el.remove(); }
-
-    function playTypingSound() {
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const o = ctx.createOscillator(); const g = ctx.createGain();
-            o.type = 'triangle';
-            o.frequency.setValueAtTime(800 + Math.random() * 400, ctx.currentTime);
-            g.gain.setValueAtTime(0.03, ctx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
-            o.connect(g); g.connect(ctx.destination);
-            o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.03);
-        } catch(e) {}
-    }
-
-    function playChime() {
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const o = ctx.createOscillator(); const g = ctx.createGain();
-            o.type = 'sine';
-            o.frequency.setValueAtTime(1200, ctx.currentTime);
-            o.frequency.setValueAtTime(1600, ctx.currentTime + 0.06);
-            g.gain.setValueAtTime(0.3, ctx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-            o.connect(g); g.connect(ctx.destination);
-            o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.2);
-        } catch(e) {}
-    }
-
-    function isNearBottom() {
-        return chat.scrollHeight - chat.scrollTop - chat.clientHeight < 80;
-    }
+    function hideTyping() { const el = document.querySelector('.typing-bubble'); if (el) el.remove(); }
 
     function addBubble(role, text, showDivider = true) {
-        if (showDivider) maybeAddTimeDivider();
-        const div = document.createElement('div'); div.className = `bubble ${role}`; div.textContent = text;
+        if (showDivider) {
+            const now = Date.now();
+            if (lastMessageTime && now - lastMessageTime > 5 * 60 * 1000) {
+                const timeStr = new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'});
+                const div = document.createElement('div'); div.className = 'time-divider'; div.textContent = timeStr;
+                chat.appendChild(div);
+            }
+            lastMessageTime = now;
+        }
+
+        const div = document.createElement('div');
+        div.className = `bubble ${role}`;
+        div.textContent = text;
+
         if (role === 'user') {
             const status = document.createElement('span'); status.className = 'msg-status';
-            status.textContent = '✓'; div.appendChild(status); div._statusEl = status;
+            status.textContent = '✓✓'; div.appendChild(status);
         }
 
         let longPressTimer;
         div.addEventListener('touchstart', (e) => {
             longPressTimer = setTimeout(() => {
-                contextMenu._targetBubble = div;
-                contextMenu._targetText = text;
-                contextMenu.style.left = e.touches[0].clientX + 'px';
-                contextMenu.style.top = e.touches[0].clientY + 'px';
-                contextMenu.classList.add('show');
+                alert("长按功能演示：你可以在这里加复制和删除菜单");
             }, 500);
         });
         div.addEventListener('touchend', () => clearTimeout(longPressTimer));
         div.addEventListener('touchmove', () => clearTimeout(longPressTimer));
-        div.addEventListener('dblclick', () => {
-            navigator.clipboard.writeText(text).then(() => {
-                const toast = document.createElement('div'); toast.className = 'copy-toast';
-                toast.textContent = '已复制'; document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 1200);
-            });
-        });
-
+        
         chat.appendChild(div);
-        const wasNearBottom = isNearBottom();
+        const wasNearBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 80;
         requestAnimationFrame(() => { if (wasNearBottom) chat.scrollTop = chat.scrollHeight; });
-
         return div;
     }
-
-    contextMenu.querySelectorAll('.menu-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const action = item.dataset.action;
-            if (action === 'copy' && contextMenu._targetText) {
-                navigator.clipboard.writeText(contextMenu._targetText).then(() => {
-                    const toast = document.createElement('div'); toast.className = 'copy-toast';
-                    toast.textContent = '已复制'; document.body.appendChild(toast);
-                    setTimeout(() => toast.remove(), 1200);
-                });
-            } else if (action === 'delete' && contextMenu._targetBubble) {
-                contextMenu._targetBubble.remove();
-            }
-            contextMenu.classList.remove('show');
-        });
-    });
-    document.addEventListener('click', (e) => {
-        if (!contextMenu.contains(e.target)) contextMenu.classList.remove('show');
-    });
 
     async function sendMessage(text, isAuto = false, specialPrompt = '') {
         if (!apiKey) return;
         const userBubble = isAuto ? null : addBubble('user', text);
-        if (!isAuto) {
-            history.push({role: 'user', content: text});
-        } else {
-            history.push({role: 'system', content: specialPrompt});
-        }
+        if (!isAuto) history.push({role: 'user', content: text});
+        else history.push({role: 'system', content: specialPrompt});
+        
         if (history[0]?.role === 'system') history[0].content = buildSystemPrompt();
         showTyping();
 
@@ -496,39 +378,22 @@ ${timeStr}
             const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey},
-                body: JSON.stringify({model: 'deepseek-chat', messages: history, temperature: 0.8})
+                body: JSON.stringify({model: 'deepseek-chat', messages: history, temperature: 0.85})
             });
-            if (!resp.ok) { const errData = await resp.json().catch(() => ({})); throw new Error(errData.error?.message || `HTTP ${resp.status}`); }
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             const data = await resp.json();
             const reply = data.choices[0].message.content;
-            const sentences = reply.split(/[。\n]+/).filter(s => s.trim());
-
-            if (isAuto) {
-                history.pop();
-                history.push({role: 'assistant', content: reply});
-            } else {
-                history.push({role: 'assistant', content: reply});
-            }
+            
+            if (isAuto) history.pop();
+            history.push({role: 'assistant', content: reply});
             saveHistory();
 
-            const delay = isAuto ? 500 : 1500 + Math.random() * 1500;
             setTimeout(() => {
                 hideTyping();
-                if (userBubble && userBubble._statusEl) {
-                    userBubble._statusEl.textContent = '✓✓'; userBubble._statusEl.style.color = '#07c160';
-                }
-                sentences.forEach((sentence, i) => {
-                    setTimeout(() => {
-                        playTypingSound();
-                        addBubble('ai', sentence.trim());
-                        if (i === sentences.length - 1 && !isAuto) playChime();
-                    }, i * 700);
-                });
-            }, delay);
+                addBubble('ai', reply);
+            }, 800 + Math.random() * 500);
         } catch (e) {
-            hideTyping();
-            if (isAuto) history.pop();
-            console.error('xtang API 错误:', e.message);
+            hideTyping(); if (isAuto) history.pop(); console.error(e.message);
         }
     }
 
@@ -544,144 +409,109 @@ ${timeStr}
     function showToast(msg) {
         const toast = document.createElement('div'); toast.className = 'copy-toast';
         toast.textContent = msg; document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 1500);
+        setTimeout(() => toast.remove(), 1000);
     }
 
-    // ===== 隐藏的设置菜单逻辑 =====
-    settingsBtn.onclick = () => {
-        dropdown.classList.toggle('show');
-    };
-    document.addEventListener('click', (e) => {
-        if (!dropdown.contains(e.target) && e.target !== settingsBtn) {
-            dropdown.classList.remove('show');
-        }
+    // ===== 语音模式逻辑 =====
+    let isPressingVoice = false;
+    let recognition = null;
+
+    switchMicBtn.addEventListener('click', () => {
+        if (isPressingVoice) return;
+        mainBtnWrapper.classList.add('voice-mode');
+        inputWrapper.style.display = 'none';
+        voiceBtnArea.style.display = 'flex';
+        msgInput.blur();
+        showToast('点击底部变灰区域，长按说话');
+        clearTimeout(window.voiceTimeout);
+        window.voiceTimeout = setTimeout(() => { exitVoiceMode(); }, 10000);
     });
 
-    document.getElementById('dropTheme').onclick = () => {
-        themeIdx = (themeIdx + 1) % themes.length;
-        document.body.className = themes[themeIdx];
-        localStorage.setItem('xtang_theme', themes[themeIdx]);
-        dropdown.classList.remove('show');
-    };
-
-    document.getElementById('dropPersona').onclick = () => {
-        document.getElementById('personaText').value = getUserPersona();
-        document.getElementById('persona-overlay').style.display = 'flex';
-        dropdown.classList.remove('show');
-    };
-    document.getElementById('personaCancel').onclick = () => document.getElementById('persona-overlay').style.display = 'none';
-    document.getElementById('personaSave').onclick = () => {
-        localStorage.setItem('xtang_persona', document.getElementById('personaText').value.trim());
-        history[0].content = buildSystemPrompt();
-        document.getElementById('persona-overlay').style.display = 'none';
-        showToast('人设已保存 ✨');
-    };
-
-    document.getElementById('dropMemory').onclick = () => {
-        document.getElementById('memoryText').value = getUserMemory();
-        document.getElementById('memory-overlay').style.display = 'flex';
-        dropdown.classList.remove('show');
-    };
-    document.getElementById('memoryCancel').onclick = () => document.getElementById('memory-overlay').style.display = 'none';
-    document.getElementById('memorySave').onclick = () => {
-        localStorage.setItem('xtang_memory', document.getElementById('memoryText').value.trim());
-        history[0].content = buildSystemPrompt();
-        document.getElementById('memory-overlay').style.display = 'none';
-        showToast('记忆已保存 ✨');
-    };
-
-    document.getElementById('dropClear').onclick = () => {
-        if (confirm('确定要清空所有聊天记录吗？AI 会重新打招呼。')) {
-            history = [{role: 'system', content: buildSystemPrompt()}];
-            localStorage.setItem('xtang_history', JSON.stringify(history));
-            renderHistory();
-        }
-        dropdown.classList.remove('show');
-    };
-
-    // ===== 消息发送逻辑 =====
-    msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
-    sendBtn.onclick = () => send();
-
-    // ===== 核心：长按输入框左侧(🎤) 触发语音 =====
-    let pressTimer = null;
-    let isPressing = false;
-
     function startVoiceRecording(e) {
-        if (isPressing) return;
-        isPressing = true;
-
-        // 启动震动反馈(如手机支持)
-        if (navigator.vibrate) navigator.vibrate(30);
-
-        micZone.classList.add('recording');
-        showToast('🎙️ 按住说话...松开即发送');
-
+        if (isPressingVoice) return;
+        isPressingVoice = true;
+        if (navigator.vibrate) navigator.vibrate(20);
+        voiceBtnArea.style.background = '#dcdcdc';
+        showToast('🎙️ 请说话...');
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const rec = new SpeechRecognition();
-            rec.lang = 'ja-JP';
-            rec.interimResults = false;
-            rec.maxAlternatives = 1;
-
-            rec.onresult = (e) => {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ja-JP';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            recognition.onresult = (e) => {
                 const transcript = e.results[0][0].transcript;
-                if(transcript.trim()) send(transcript);
+                if(transcript.trim()) { showToast('发送中'); send(transcript); }
             };
-            rec.onerror = () => {
-                showToast('语音识别失败，请手动输入');
-                micZone.classList.remove('recording');
-                isPressing = false;
-            };
-            rec.onend = () => {
-                micZone.classList.remove('recording');
-                isPressing = false;
-            };
-            rec.start();
-            
-            // 保存识别器，以便如果用户提前松手可以停止它
-            micZone._rec = rec; 
+            recognition.onerror = () => { showToast('识别失败，请打字'); };
+            recognition.onend = () => { isPressingVoice = false; voiceBtnArea.style.background = 'transparent'; };
+            recognition.start();
         } else {
-            showToast('你的浏览器不支持语音输入');
-            micZone.classList.remove('recording');
-            isPressing = false;
+            showToast('浏览器不支持语音');
+            isPressingVoice = false; voiceBtnArea.style.background = 'transparent';
         }
     }
 
     function stopVoiceRecording() {
-        if (!isPressing) return;
-        isPressing = false;
-        micZone.classList.remove('recording');
-        
-        if (micZone._rec) {
-            try {
-                micZone._rec.stop();
-                micZone._rec = null;
-            } catch(e) {}
-        }
+        if (!isPressingVoice) return;
+        isPressingVoice = false;
+        voiceBtnArea.style.background = 'transparent';
+        if (recognition) { try { recognition.stop(); recognition = null; } catch(e) {} }
     }
 
-    // 监听触摸事件(移动端)
-    micZone.addEventListener('touchstart', (e) => {
-        e.preventDefault(); // 避免触发键盘或者滚动
-        startVoiceRecording(e);
-    });
-    micZone.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        stopVoiceRecording();
-    });
-    micZone.addEventListener('touchcancel', (e) => {
-        e.preventDefault();
-        stopVoiceRecording();
+    voiceBtnArea.addEventListener('touchstart', (e) => { e.preventDefault(); startVoiceRecording(e); });
+    voiceBtnArea.addEventListener('touchend', (e) => { e.preventDefault(); stopVoiceRecording(); });
+    voiceBtnArea.addEventListener('touchcancel', (e) => { e.preventDefault(); stopVoiceRecording(); });
+    voiceBtnArea.addEventListener('mousedown', startVoiceRecording);
+    voiceBtnArea.addEventListener('mouseup', stopVoiceRecording);
+    voiceBtnArea.addEventListener('mouseleave', stopVoiceRecording);
+
+    function exitVoiceMode() {
+        mainBtnWrapper.classList.remove('voice-mode');
+        inputWrapper.style.display = 'flex';
+        voiceBtnArea.style.display = 'none';
+        clearTimeout(window.voiceTimeout);
+    }
+
+    document.addEventListener('click', (e) => {
+        if (mainBtnWrapper.classList.contains('voice-mode') && !voiceBtnArea.contains(e.target) && e.target !== switchMicBtn) {
+            exitVoiceMode();
+        }
     });
 
-    // 监听鼠标事件(PC端测试用)
-    micZone.addEventListener('mousedown', startVoiceRecording);
-    micZone.addEventListener('mouseup', stopVoiceRecording);
-    micZone.addEventListener('mouseleave', stopVoiceRecording);
+    // ===== 设置菜单逻辑 =====
+    settingsBtn.onclick = () => dropdown.classList.toggle('show');
+    document.addEventListener('click', (e) => { if (!dropdown.contains(e.target) && e.target !== settingsBtn) dropdown.classList.remove('show'); });
 
+    document.getElementById('dropTheme').onclick = () => {
+        themeIdx = (themeIdx + 1) % themes.length; document.body.className = themes[themeIdx]; 
+        localStorage.setItem('xtang_theme', themes[themeIdx]); dropdown.classList.remove('show');
+    };
+    document.getElementById('dropPersona').onclick = () => { document.getElementById('personaText').value = getUserPersona(); document.getElementById('persona-overlay').style.display = 'flex'; dropdown.classList.remove('show'); };
+    document.getElementById('personaCancel').onclick = () => document.getElementById('persona-overlay').style.display = 'none';
+    document.getElementById('personaSave').onclick = () => {
+        localStorage.setItem('xtang_persona', document.getElementById('personaText').value.trim());
+        history[0].content = buildSystemPrompt(); document.getElementById('persona-overlay').style.display = 'none'; showToast('人设已保存 ✨');
+    };
 
-    // 启动界面
+    document.getElementById('dropMemory').onclick = () => { document.getElementById('memoryText').value = getUserMemory(); document.getElementById('memory-overlay').style.display = 'flex'; dropdown.classList.remove('show'); };
+    document.getElementById('memoryCancel').onclick = () => document.getElementById('memory-overlay').style.display = 'none';
+    document.getElementById('memorySave').onclick = () => {
+        localStorage.setItem('xtang_memory', document.getElementById('memoryText').value.trim());
+        history[0].content = buildSystemPrompt(); document.getElementById('memory-overlay').style.display = 'none'; showToast('记忆已保存 ✨');
+    };
+
+    document.getElementById('dropClear').onclick = () => {
+        if (confirm('确定要清空所有聊天记录吗？')) {
+            history = [{role: 'system', content: buildSystemPrompt()}];
+            localStorage.setItem('xtang_history', JSON.stringify(history)); renderHistory();
+        }
+        dropdown.classList.remove('show');
+    };
+
+    msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
+    sendBtn.onclick = () => send();
+
     renderHistory();
 </script>
 </body>
