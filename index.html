@@ -32,7 +32,6 @@
         .header-left {
             display: flex; align-items: center; gap: 12px;
         }
-        /* 【修改】顶部头像：改为纯红色渐变，无表情 */
         .header-avatar { 
             width: 36px; height: 36px; 
             background: linear-gradient(135deg, #ff6b6b, #ff4757, #ff6348);
@@ -99,22 +98,22 @@
             border-bottom-right-radius: 4px;
         }
 
-        /* 【修改】AI 文本气泡内置的音频可视化播放器 */
+        /* 【修改】缩小音频可视化播放器 */
         .bubble.ai .visualizer {
             display: none; /* 默认隐藏 */
-            align-items: flex-end; gap: 3px; height: 20px;
+            align-items: flex-end; gap: 2px; height: 14px;
         }
         .bubble.ai.speaking .visualizer {
             display: flex; /* 说话时显示 */
         }
         .vis-bar {
-            width: 3px; border-radius: 2px; background: #ff4757; /* 红色音波 */
-            height: 10px; animation: jump 0.6s infinite ease-in-out alternate;
+            width: 2px; border-radius: 2px; background: #ff4757;
+            height: 8px; animation: jump 0.6s infinite ease-in-out alternate;
         }
-        .vis-bar:nth-child(1) { animation-delay: 0.0s; height: 16px; background: #ff6b6b; }
-        .vis-bar:nth-child(2) { animation-delay: 0.2s; height: 20px; background: #ff4757; }
-        .vis-bar:nth-child(3) { animation-delay: 0.4s; height: 14px; background: #ff6348; }
-        .vis-bar:nth-child(4) { animation-delay: 0.6s; height: 10px; background: #ff6b6b; }
+        .vis-bar:nth-child(1) { animation-delay: 0.0s; height: 10px; }
+        .vis-bar:nth-child(2) { animation-delay: 0.2s; height: 14px; }
+        .vis-bar:nth-child(3) { animation-delay: 0.4s; height: 8px; }
+        .vis-bar:nth-child(4) { animation-delay: 0.6s; height: 6px; }
         @keyframes jump {
             0% { transform: scaleY(0.3); }
             100% { transform: scaleY(2); }
@@ -173,7 +172,6 @@
 <div id="app-container">
     <div id="header">
         <div class="header-left">
-            <!-- 顶部纯渐变红头像 -->
             <div class="header-avatar"></div>
             <div class="header-info">
                 <div class="header-name">xtang</div>
@@ -235,15 +233,20 @@
 
     // ===== 文字转语音 (ElevenLabs) & 音频可视化 =====
     let isTTSEnabled = true;
+    /* 【需要修改的位置】把下面引号里的内容换成你的真实 Key */
     const ELEVENLABS_API_KEY = "sk_84c830f066b6e94c31d37bb61a4bad7830babc1ae071e96b"; 
     const ELEVENLABS_VOICE_ID = "R7KnJI27CitB8T6cCweN";
 
     async function speakText(text, bubbleEl) {
         if (!isTTSEnabled) return;
         
-        // 暂停之前的语音和动画
+        // 强行停止任何正在播放的音频（解决捂嘴和卡顿）
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            currentAudio = null;
+        }
         window.speechSynthesis.cancel();
-        if (currentAudio) { currentAudio.pause(); currentAudio = null; }
         if (bubbleEl) bubbleEl.classList.remove('speaking');
 
         const showStart = () => { if (bubbleEl) bubbleEl.classList.add('speaking'); };
@@ -280,14 +283,13 @@
             const audioUrl = URL.createObjectURL(audioBlob);
             const audio = new Audio(audioUrl);
 
-            // 绑定事件触发可视化动画
             audio.onplay = showStart;
             audio.onended = () => {
                 showEnd();
                 URL.revokeObjectURL(audioUrl);
-                currentAudio = null;
+                if (currentAudio === audio) currentAudio = null;
             };
-            currentAudio = audio; // 保存到全局以便随时停止
+            currentAudio = audio; 
             audio.play();
 
         } catch (e) {
@@ -307,8 +309,8 @@
             ttsBtn.classList.remove('tts-inactive'); ttsBtn.classList.add('tts-active'); ttsBtn.innerText = '🔊 朗读';
         } else {
             ttsBtn.classList.remove('tts-active'); ttsBtn.classList.add('tts-inactive'); ttsBtn.innerText = '🔇 静音';
+            if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; currentAudio = null; }
             window.speechSynthesis.cancel();
-            if (currentAudio) { currentAudio.pause(); currentAudio = null; }
         }
     };
 
@@ -376,14 +378,19 @@ ${memoryBlock}
             const data = await resp.json();
             let reply = data.choices[0].message.content;
             
+            // 【修改】去除原本的 20 字符硬截断和省略号，只保留取第一句话的逻辑
             const sentences = reply.match(/[^。！？.!?]+[。！？.!?]?/g);
-            if (sentences && sentences.length > 0) reply = sentences[0].trim(); 
-            if (reply.length > 20) reply = reply.substring(0, 18) + '…';
+            if (sentences && sentences.length > 0) {
+                reply = sentences[0].trim(); 
+            }
+            // 如果依然超出 20 字，只截取前 20 个字，但不加省略号 "…"
+            if (reply.length > 20) {
+                reply = reply.substring(0, 20);
+            }
 
             history.push({role: 'assistant', content: reply});
             saveHistory();
             
-            // 接收返回的气泡元素，以便传递到语音功能激活动画
             const bubbleEl = addBubble('assistant', reply);
             if (isTTSEnabled) speakText(reply, bubbleEl);
         } catch (e) { console.error(e); }
@@ -405,7 +412,6 @@ ${memoryBlock}
         row.className = `msg-row ${isAI ? 'ai-row' : 'user-row'}`;
         
         if (isAI) {
-            // 为 AI 气泡添加播放器可视化动画
             const visualizerHtml = `<div class="visualizer"><div class="vis-bar"></div><div class="vis-bar"></div><div class="vis-bar"></div><div class="vis-bar"></div></div>`;
             row.innerHTML = `<div class="msg-avatar ai-avatar"></div><div class="bubble ai">${visualizerHtml}${text}</div>`;
         } else {
@@ -415,14 +421,11 @@ ${memoryBlock}
 
         if (isAI) {
             const bubble = row.querySelector('.bubble.ai');
-            // 点击气泡手动重新朗读
             bubble.addEventListener('click', () => { 
                 if (isTTSEnabled) speakText(text, bubble); 
             });
         }
         chat.scrollTop = chat.scrollHeight;
-        
-        // 返回气泡元素以便触发语音动画
         return isAI ? row.querySelector('.bubble.ai') : null;
     }
 
